@@ -1,0 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
+*,*::before,*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+  /* Dashboard Colors */
+  --bg: #0B0C0E; 
+  --card: #16181C; 
+  --sidebar: #16181C; 
+  --accent: #3b82f6; 
+  --green: #00FFA3; 
+  --red: #FF4B55; 
+  --gold: #F7931A; 
+  --text: #FFFFFF; 
+  --muted: #8E929B; 
+  --border: #2A2A2A; 
+  --border-light: rgba(255,255,255,0.05); 
+  --border-med: rgba(255,255,255,0.1); 
+  --card-alt: #121212; 
+  --card-inset: #1A1A1A; 
+  --glass-bg: rgba(22,24,28,0.92);
+  --btn-text-buy: #000;
+  --font-head: 'Inter', sans-serif; 
+  --font-body: 'Inter', sans-serif; 
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Auth specific */
+  --bg-dark: #0a0a0a;
+  --card-bg: rgba(16, 16, 16, 0.7);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --accent-cyan: #22c55e;
+  --accent-blue: #16a34a;
+  --text-main: #f8fafc;
+  --input-bg: #141414;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --warning-text: #f5b041;
+}
+
+[data-theme="light"] {
+  --bg: #F3F4F6;
+  --card: #FFFFFF;
+  --sidebar: #FFFFFF;
+  --text: #111827;
+  --muted: #6B7280;
+  --border: #E5E7EB;
+  --border-light: rgba(0,0,0,0.05);
+  --border-med: rgba(0,0,0,0.1);
+  --card-alt: #F9FAFB;
+  --card-inset: #F3F4F6;
+  --glass-bg: rgba(255,255,255,0.92);
+  --btn-text-buy: #FFF;
+}
+
+html, body { min-height: 100vh; height: 100%; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #000000; }
+::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 3px; }
+
+input, textarea, select, button { font-family: var(--font-body); outline: none; }
+button { cursor: pointer; border: none; }
+
+/* Dashboard Utilities */
+.fade-in { animation: fadeIn .4s ease both; }
+.card-hover { transition: transform .2s, border-color .2s; }
+.card-hover:hover { border-color: var(--border-med); }
+.glass-card { transition: all .3s ease; border: 1px solid var(--border-light); }
+.glass-card:hover {
+    border-color: rgba(16,208,122,.5) !important;
+    box-shadow: 0 0 15px rgba(16,208,122,.1), 0 4px 20px rgba(16,208,122,.05);
+    transform: translateY(-2px);
+}
+.hidden { display: none !important; }
+
+@keyframes authFadeIn { 0% { opacity: 0; transform: translateY(20px) scale(0.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* Ticker */
+.ticker-wrap { width: 100%; overflow: hidden; background: var(--card-alt); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); white-space: nowrap; box-sizing: border-box; }
+.ticker-move { display: inline-block; white-space: nowrap; padding-right: 100%; animation: ticker 20s linear infinite; }
+.ticker-move:hover { animation-play-state: paused; }
+.ticker-item { display: inline-block; padding: 10px 24px; font-weight: 600; font-family: var(--font-mono); font-size: 14px; }
+@keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+
+.symbol-link { transition: color 0.2s; }
+.symbol-link:hover { color: var(--accent) !important; text-decoration: underline; }
+
+/* ─── AUTH PAGE STYLES (Exact Match) ─── */
+.auth-bg {
+    position: fixed; inset: 0;
+    background: radial-gradient(circle at 50% -20%, rgba(34, 197, 94, 0.15), transparent 60%),
+                radial-gradient(circle at 100% 80%, rgba(22, 163, 74, 0.05), transparent 50%);
+    z-index: -1;
+}
+.auth-container {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; position: relative;
+}
+.auth-card {
+    width: 100%; max-width: 440px; background: var(--card-bg); backdrop-filter: blur(16px);
+    border: 1px solid var(--border-subtle); border-radius: 24px; padding: 40px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: authFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.auth-header { text-align: center; margin-bottom: 32px; }
+.logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px; }
+.logo-image { width: 48px; height: 48px; object-fit: contain; border-radius: 12px; box-shadow: 0 0 20px rgba(34, 197, 94, 0.2); }
+.logo-text { font-size: 32px; font-weight: 800; letter-spacing: -1px; background: linear-gradient(135deg, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.auth-subtitle { color: var(--text-muted); font-size: 15px; }
+
+.tabs-container { display: flex; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 4px; margin-bottom: 28px; position: relative; }
+.tab-btn { flex: 1; padding: 10px 0; font-size: 14px; font-weight: 600; background: transparent; color: var(--text-muted); border-radius: 8px; z-index: 1; transition: 0.2s; }
+.tab-btn.active { color: #fff; }
+.tab-indicator { position: absolute; top: 4px; bottom: 4px; width: calc(50% - 4px); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 0; }
+
+.input-group { margin-bottom: 20px; position: relative; }
+.input-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 8px; }
+.input-field { width: 100%; background: var(--input-bg); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 14px 16px; border-radius: 12px; font-size: 15px; transition: all 0.2s ease; }
+.input-field:focus { border-color: var(--accent-cyan); background: rgba(0, 245, 212, 0.03); box-shadow: 0 0 0 3px rgba(0, 245, 212, 0.1); }
+.submit-btn { width: 100%; padding: 16px; background: linear-gradient(to right, var(--accent-cyan), var(--accent-blue)); color: #000; border-radius: 12px; font-size: 16px; font-weight: 700; margin-top: 12px; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(0, 245, 212, 0.2); }
+.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 245, 212, 0.3); }
+
+/* ─── DASHBOARD EXACT LAYOUT ─── */
+.dashboard-wrap { padding-bottom: 40px; max-width: 1200px; margin: 0 auto; margin-top: 24px; padding: 0 20px;}
+.welcome-banner { background: var(--card-alt); border: 1px solid var(--border); border-radius: 16px; padding: 24px 32px; margin-bottom: 24px; }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 24px; }
+
+.stat-card { background: var(--card-alt); border-radius: 16px; padding: 24px 32px; display: flex; flex-direction: column; justify-content: center; }
+.action-card { background: var(--card-alt); border-radius: 16px; padding: 24px 32px; }
+
+.quick-btn { background: var(--card-inset); border-radius: 10px; padding: 14px; color: var(--text); display: flex; alignItems: center; gap: 12px; font-weight: 600; font-size: 14px; margin-bottom: 12px; width: 100%; text-align: left; transition: all 0.3s ease; border: 1px solid var(--border-light); }
+.quick-btn:hover { border-color: rgba(16,208,122,.5); transform: translateY(-2px); }
+
+.market-scroll { display: flex; gap: 16px; overflow-x: auto; padding: 4px 4px 12px 4px; margin: 0 -4px 20px -4px; scrollbar-width: none; }
+.market-scroll::-webkit-scrollbar { display: none; }
+.market-item { background: var(--card-alt); border-radius: 12px; padding: 16px; min-width: 200px; flex-shrink: 0; }
+
+.movers-list { background: var(--card-alt); border: 1px solid var(--border); border-radius: 16px; padding: 12px 24px; }
+.mover-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.mover-row:last-child { border-bottom: none; }
+
+.top-nav { display: flex; gap: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; }
+.nav-item { color: var(--muted); font-weight: 600; cursor: pointer; padding: 8px 12px; border-radius: 8px; transition: 0.2s; }
+.nav-item:hover { color: var(--text); background: var(--border-light); }
+.nav-item.active { color: var(--text); background: var(--border-med); }
+
+/* Global components like Chat missing here, but we style it similarly */
+.chat-window { background: var(--card-alt); border-radius: 16px; border: 1px solid var(--border); height: 60vh; display: flex; flex-direction: column; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.chat-input { display: flex; gap: 12px; padding: 16px; border-top: 1px solid var(--border); background: var(--card-inset); border-radius: 0 0 16px 16px; }
+.chat-input input { flex: 1; padding: 12px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border-med); color: var(--text); }
+.chat-input button { padding: 0 20px; border-radius: 8px; background: var(--accent); color: white; font-weight: bold; }
+
+/* Tables */
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 16px 12px; text-align: left; }
+.table th { color: var(--muted); font-size: 13px; font-weight: 500; border-bottom: 1px solid var(--border); text-transform: uppercase;}
+.table tr { border-bottom: 1px solid var(--border-light); transition: 0.2s; }
+.table tr:hover { background: var(--card-inset); }
+
+/* Trade Button style from Labh.jsx Modal */
+.trade-action-btn { padding: 6px 16px; border-radius: 8px; background: rgba(59,130,246,0.1); color: var(--accent); font-weight: 600; cursor: pointer; border: 1px solid rgba(59,130,246,0.2); transition: 0.2s; }
+.trade-action-btn:hover { background: rgba(59,130,246,0.2); }
+
+/* Toasts */
+.toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.toast { background: var(--card); backdrop-filter: blur(12px); border: 1px solid var(--border); border-left: 4px solid var(--green); border-radius: 10px; padding: 14px 20px; min-width: 300px; animation: toastIn 0.3s ease; font-family: var(--font-mono); font-size: 13px; display: flex; gap: 10px; align-items: center; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+.toast.error { border-left-color: var(--red); }
+@keyframes toastIn { from { transform: translateX(120%); } to { transform: translateX(0); } }

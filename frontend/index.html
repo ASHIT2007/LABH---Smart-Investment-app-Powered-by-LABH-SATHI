@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Dashboard (LABH)</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body data-theme="dark">
+
+<div id="app" style="display:none; height: 100vh; overflow-y: auto;">
+    
+    <!-- Exact Top Nav match -->
+    <div style="background: var(--card); border-bottom: 1px solid var(--border); padding: 16px 24px; position: sticky; top: 0; z-index: 100; display:flex; justify-content:space-between; align-items:center;">
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight:bold; color:#000;">L</div>
+            <div style="font-weight: 800; font-size: 20px;">LABH</div>
+        </div>
+        <div class="top-nav" style="margin: 0; border: none; padding: 0;">
+            <div class="nav-item active" data-tab="home">Dashboard</div>
+            <div class="nav-item" data-tab="markets">Markets</div>
+            <div class="nav-item" data-tab="portfolio">Portfolio</div>
+            <div class="nav-item" data-tab="aichat">Labh Sathi (AI)</div>
+            <div class="nav-item" data-tab="history">Trade History</div>
+        </div>
+        <div style="display: flex; gap: 16px; align-items: center;">
+            <button id="themeToggleBtn" style="padding: 6px 12px; background: transparent; border: none; font-size: 18px; cursor: pointer;" title="Toggle Theme">☀️</button>
+            <span id="navUserName" style="font-size: 14px; color: var(--muted);">Trader</span>
+            <button id="logoutBtn" style="padding: 6px 12px; background: rgba(255,255,255,0.05); color: var(--text); border-radius: 6px; border: 1px solid var(--border);">Logout</button>
+        </div>
+    </div>
+
+    <!-- Price Ticker -->
+    <div class="ticker-wrap">
+        <div class="ticker-move" id="tickerContent">
+            <!-- Injected dynamically -->
+        </div>
+    </div>
+
+    <!-- Home Tab -->
+    <div id="homeTab" class="dashboard-wrap fade-in">
+        <div class="welcome-banner">
+            <div style="font-size: 14px; color: var(--muted);">Welcome back,</div>
+            <h2 id="welcomeName" style="font-family: var(--font-head); font-size: 26px; margin-top: 4px;">Trader 👋</h2>
+        </div>
+
+        <div id="dashboardWidgets" style="display: flex; flex-direction: column; gap: 24px;">
+            <div class="dashboard-widget" draggable="true" data-widget-id="top-cards" style="cursor: grab;">
+                <div class="grid-2">
+                    <!-- Portfolio Snapshot -->
+                    <div class="glass-card stat-card">
+                        <div style="font-size: 13px; color: var(--muted); margin-bottom: 6px;">Virtual Cash Balance</div>
+                        <div id="homeCash" style="font-family: var(--font-mono); font-size: 36px; font-weight: 700; color: var(--green);">₹1,00,000.00</div>
+                        <div style="height: 1px; background: var(--border); margin: 16px 0;"></div>
+                        <div style="font-size: 13px; color: var(--muted); margin-bottom: 6px;">Total Portfolio Value</div>
+                        <div id="homePortfolioValue" style="font-family: var(--font-mono); font-size: 24px; font-weight: 600; color: var(--text);">₹0.00</div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="glass-card action-card">
+                        <h3 style="font-family: var(--font-head); font-size: 16px; margin-bottom: 16px; color: var(--text);">⚡ Quick Actions</h3>
+                        <div style="display: flex; flex-direction: column;">
+                            <button class="quick-btn" onclick="switchTab('markets')"><span style="font-size: 18px;">📈</span> Make a Trade</button>
+                            <button class="quick-btn" onclick="switchTab('portfolio')"><span style="font-size: 18px;">💼</span> View Portfolio</button>
+                            <button class="quick-btn" onclick="switchTab('aichat')"><span style="font-size: 18px;">✨</span> Ask Labh Sathi</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-widget" draggable="true" data-widget-id="market-overview" style="cursor: grab;">
+                <h3 style="font-family: var(--font-head); font-size: 16px; margin-bottom: 16px; margin-top: 12px; color: var(--text);">🌐 Market Overview</h3>
+                <div class="market-scroll" id="marketOverviewList">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+
+            <div class="dashboard-widget" draggable="true" data-widget-id="trending-movers" style="cursor: grab;">
+                <h3 style="font-family: var(--font-head); font-size: 16px; margin-bottom: 16px; color: var(--text);">🔥 Trending Movers</h3>
+                <div class="movers-list" id="moversList">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Markets Tab -->
+    <div id="marketsTab" class="dashboard-wrap fade-in hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+            <h2>Live Markets</h2>
+            <input type="text" id="marketSearch" autocomplete="off" placeholder="Search symbol or name..." style="padding: 10px 16px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border-med); color: var(--text); width: 250px;">
+        </div>
+        
+        <h3 id="watchlistHeader" class="hidden" style="margin-bottom: 12px; font-size: 16px; color: var(--gold);">⭐ My Watchlist</h3>
+        <div class="movers-list hidden" id="watchlistContainer" style="margin-bottom: 30px;">
+            <table class="table" id="watchlistTable">
+                <thead><tr><th>Watch</th><th>Symbol</th><th>Name</th><th>Price</th><th>Change</th><th>Action</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <h3 style="margin-bottom: 12px; font-size: 16px;">All Stocks</h3>
+        <div class="movers-list">
+            <table class="table" id="fullMarketTable">
+                <thead><tr><th>Watch</th><th>Symbol</th><th>Name</th><th>Price</th><th>Change</th><th>Action</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Portfolio Tab -->
+    <div id="portfolioTab" class="dashboard-wrap fade-in hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>My Holdings</h2>
+            <button id="roastBtn" style="padding: 10px 20px; background: linear-gradient(135deg, var(--red), var(--gold)); color: white; border-radius: 8px; font-weight: bold; border: none; cursor:pointer;" class="quick-btn">🔥 Roast My Portfolio</button>
+        </div>
+        <div id="roastResult" class="welcome-banner hidden" style="border-color: var(--red); background: rgba(255, 75, 85, 0.05);"></div>
+        <div class="movers-list">
+            <table class="table" id="portfolioTable">
+                <thead><tr><th>Symbol</th><th>Qty</th><th>Avg Buy</th><th>LTP</th><th>P&L</th><th>Action</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- AI Chat Tab (Labh Sathi) -->
+    <div id="aichatTab" class="dashboard-wrap fade-in hidden">
+        <h2>✨ Labh Sathi - Vibe Engine</h2>
+        <p style="color: var(--muted); margin-bottom: 20px;">Powered by Artificial Intelligence.</p>
+        <div class="chat-window">
+            <div id="chatMessages" class="chat-messages">
+                <div style="max-width: 80%; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 12px; padding: 14px; margin-bottom: 10px; font-size: 15px; color: var(--text); border-bottom-left-radius: 2px;">
+                    Welcome to Labh! I am your AI trading assistant. Ask me about stocks, fundamental analysis, or request a trade!
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Ask 'What is RSI?' or 'Should I buy Reliance?'...">
+                <button id="chatSend">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trade History Tab -->
+    <div id="historyTab" class="dashboard-wrap fade-in hidden">
+        <h2>🧾 Trade History</h2><br>
+        <div class="movers-list">
+            <table class="table" id="historyTable">
+                <thead><tr><th>Date & Time</th><th>Type</th><th>Symbol</th><th>Qty</th><th>Price</th><th>Total Amount</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Stock Detail Modal (Chart & Financials) -->
+<div id="stockDetailModal" class="hidden" style="position: fixed; inset: 0; z-index: 4000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.6); backdrop-filter: blur(8px);">
+    <div class="fade-in" style="background: var(--card); border: 1px solid var(--border-light); border-radius: 16px; padding: 24px; width: 850px; max-width: 95%; max-height: 90vh; overflow-y: auto; position: relative;">
+        <button onclick="document.getElementById('stockDetailModal').classList.add('hidden')" style="position: absolute; right: 20px; top: 20px; background: transparent; color: var(--text); font-size: 20px; cursor: pointer;">✖</button>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+            <div>
+                <h2 id="detailSym" style="font-family: var(--font-head); font-size: 28px; display: inline-block;">-</h2>
+                <span id="detailName" style="color: var(--muted); margin-left: 12px; font-size: 16px;">-</span>
+                <div style="margin-top: 8px;">
+                    <span id="detailPrc" style="font-family: var(--font-mono); font-size: 24px; font-weight: bold;">-</span>
+                    <span id="detailChg" style="margin-left: 12px; font-weight: 600; font-family: var(--font-mono);"></span>
+                </div>
+            </div>
+            <button id="detailTradeBtn" class="trade-action-btn" style="padding: 10px 24px; font-size: 16px;">Trade</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+            <!-- Chart Container -->
+            <div style="background: var(--card-inset); border: 1px solid var(--border); border-radius: 12px; padding: 16px; height: 400px; display: flex; flex-direction: column;">
+                <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--muted);">Price History (30D)</h3>
+                <div id="chartContainer" style="flex: 1; position: relative;"></div>
+            </div>
+            <!-- Financial Data Cards -->
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="background: var(--card-alt); border: 1px solid var(--border); border-radius: 10px; padding: 16px;">
+                    <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px;">Market Cap</div>
+                    <div id="detailMktCap" style="font-weight: 600; font-family: var(--font-mono); font-size: 18px;">-</div>
+                </div>
+                <div style="background: var(--card-alt); border: 1px solid var(--border); border-radius: 10px; padding: 16px;">
+                    <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px;">P/E Ratio</div>
+                    <div id="detailPE" style="font-weight: 600; font-family: var(--font-mono); font-size: 18px;">-</div>
+                </div>
+                <div style="background: var(--card-alt); border: 1px solid var(--border); border-radius: 10px; padding: 16px;">
+                    <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px;">52-Week High / Low</div>
+                    <div id="detail52W" style="font-weight: 600; font-family: var(--font-mono); font-size: 14px;">-</div>
+                </div>
+                <div style="background: var(--card-alt); border: 1px solid var(--border); border-radius: 10px; padding: 16px;">
+                    <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px;">Volume</div>
+                    <div id="detailVol" style="font-weight: 600; font-family: var(--font-mono); font-size: 18px;">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Global Trade Modal (Hidden) -->
+<div id="tradeModal" class="hidden" style="position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.4); backdrop-filter: blur(12px);">
+    <div class="fade-in" style="background: var(--card); backdrop-filter: blur(16px); border: 1px solid var(--border-light); border-radius: 16px; padding: 28px; width: 380px; box-shadow: 0 8px 40px rgba(0,0,0,0.4);">
+        <h3 style="font-family: var(--font-head); font-size: 20px; margin-bottom: 4px;"><span id="modalAction" style="color: var(--green);">BUY</span> <span id="modalSym">HDFCBANK</span></h3>
+        <p style="color: var(--muted); font-size: 13px; margin-bottom: 16px;">Current Price: <span style="font-family: var(--font-mono); color: var(--text); font-weight: 600;">₹<span id="modalPrc">100</span></span></p>
+        <label style="font-size: 13px; color: var(--muted);">Quantity</label>
+        <input type="number" id="tradeQty" min="1" value="1" style="display: block; width: 100%; padding: 10px 14px; margin-top: 6px; margin-bottom: 12px; background: var(--bg); border: 1px solid var(--muted); border-radius: 8px; color: var(--text); font-size: 16px; font-family: var(--font-mono);">
+        <div style="font-size: 12px; color: var(--muted); margin-bottom: 20px;">Estimated Total: <strong style="font-size: 16px; font-family: var(--font-mono); color: white;">₹<span id="modalTotal">0.00</span></strong></div>
+        <div style="display: flex; gap: 12px;">
+            <button onclick="document.getElementById('tradeModal').classList.add('hidden')" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--muted); background: transparent; color: var(--text);">Cancel</button>
+            <button id="modalConfirmBtn" style="flex: 1; padding: 10px; border-radius: 8px; background: var(--green); color: black; font-weight: 600;">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="js/app.js" type="module"></script>
+</body>
+</html>

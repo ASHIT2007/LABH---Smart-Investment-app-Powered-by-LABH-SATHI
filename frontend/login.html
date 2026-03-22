@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labh Authentication</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="auth-bg"></div>
+<div class="auth-container">
+    <div class="auth-card">
+        <!-- Header -->
+        <div class="auth-header">
+            <div class="logo-container">
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: black; box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);">L</div>
+                <h1 class="logo-text">Labh</h1>
+            </div>
+            <p class="auth-subtitle">Trade smarter with Vibe AI</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-container" id="authTabs">
+            <div class="tab-indicator" id="tabIdx"></div>
+            <button class="tab-btn active" id="loginTabBtn">Sign In</button>
+            <button class="tab-btn" id="regTabBtn">Register</button>
+        </div>
+
+        <!-- Forms -->
+        <form id="authForm">
+            <div id="regFields" class="hidden">
+                <div class="input-group fade-in">
+                    <label class="input-label">Full Name</label>
+                    <input class="input-field" type="text" id="regName" placeholder="Enter your full name">
+                </div>
+                <div class="input-group fade-in">
+                    <label class="input-label">Experience Level</label>
+                    <select class="input-field" id="regLevel">
+                        <option value="Beginner" style="background: #141414">Beginner — new to trading</option>
+                        <option value="Advanced" style="background: #141414">Advanced — seasoned trader</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Email Address</label>
+                <input class="input-field" type="email" id="email" required placeholder="name@example.com" value="demo@labh.com">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Password</label>
+                <input class="input-field" type="password" id="password" required placeholder="Enter your password" value="password">
+            </div>
+
+            <div id="authError" style="color:var(--danger); font-size:13px; text-align:center; margin-bottom:10px;"></div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">Sign In</button>
+        </form>
+
+        <div class="warning-footer">
+            <span style="font-size: 16px;">⚠️</span>
+            <span>Educational platform for learning stock market concepts. <strong>No real trading or money involved.</strong></span>
+        </div>
+    </div>
+</div>
+
+<script src="js/auth.js" type="module"></script>
+</body>
+</html>
