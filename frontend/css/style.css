@@ -86,7 +86,7 @@ button { cursor: pointer; border: none; }
 
 /* Ticker */
 .ticker-wrap { width: 100%; overflow: hidden; background: var(--card-alt); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); white-space: nowrap; box-sizing: border-box; }
-.ticker-move { display: inline-block; white-space: nowrap; padding-right: 100%; animation: ticker 20s linear infinite; }
+.ticker-move { display: inline-block; white-space: nowrap; padding-right: 100%; animation: ticker 60s linear infinite; }
 .ticker-move:hover { animation-play-state: paused; }
 .ticker-item { display: inline-block; padding: 10px 24px; font-weight: 600; font-family: var(--font-mono); font-size: 14px; }
 @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
