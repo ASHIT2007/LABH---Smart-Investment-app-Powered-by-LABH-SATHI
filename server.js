@@ -346,7 +346,7 @@ app.get('/api/sentiment', async (req, res) => {
         const headlinesToAnalyze = newsCache.slice(0, 10).map((n, i) => `${i+1}. "${n.title}" (Source: ${n.source || 'Unknown'})`).join('\n');
 
         const response = await ai.chat.completions.create({
-            model: 'llama-3.3-70b-versatile',
+            model: 'llama-3.1-8b-instant',
             messages: [{
                 role: 'system',
                 content: `You are a financial sentiment analysis engine for the Indian Stock Market (NSE/BSE). Analyze each headline and return ONLY valid JSON. No markdown, no explanation.`
@@ -589,7 +589,7 @@ app.post('/api/vibe-trade', async (req, res) => {
         if (!ai) return res.json({ reply: "I am Labh Sathi! Please add GROQ_API_KEY in .env to enable my AI brain. Right now, I'm just a simple bot. But I can tell you the market looks interesting today!" });
         const { prompt } = req.body;
         const response = await ai.chat.completions.create({
-            model: 'llama-3.3-70b-versatile',
+            model: 'llama-3.1-8b-instant',
             messages: [{ role: 'system', content: 'You are Labh Sathi, a helpful AI assistant for the Indian Stock Market.' }, { role: 'user', content: prompt }],
             max_tokens: 300
         });
@@ -604,7 +604,7 @@ app.post('/api/roast', async (req, res) => {
     if (!ai) return res.json({ roastText: "Your portfolio is too boring to roast. Add GROQ_API_KEY to get the real FIRE! 🔥", riskScore: 5 });
     try {
         const response = await ai.chat.completions.create({
-            model: 'llama-3.3-70b-versatile',
+            model: 'llama-3.1-8b-instant',
             messages: [{ role: 'user', content: 'Roast this stock portfolio: ' + JSON.stringify(req.body.portfolio) + '. Return pure JSON format: { "roastText": "string", "riskScore": integer } without any markdown like ```json' }],
             max_tokens: 200
         });
