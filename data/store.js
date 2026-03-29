@@ -5,9 +5,9 @@ export const users = [
 export const interlocks = [];
 
 // Logo.dev API — auto-fetches company logos by domain
-// Sign up at https://logo.dev for a free API key for production use
+
 // Works without a token on localhost for development
-const LOGO_DEV_TOKEN = process.env.LOGO_DEV_TOKEN || ''; // Set in .env file
+const LOGO_DEV_TOKEN = process.env.LOGO_DEV_TOKEN || 'pk_CIutsZzuRt28u-nUW8zTRg'; // Set in .env file
 const logoUrl = (domain) => `https://img.logo.dev/${domain}?${LOGO_DEV_TOKEN ? 'token=' + LOGO_DEV_TOKEN + '&' : ''}size=128&format=png`;
 
 export const STOCKS_DATA = {
