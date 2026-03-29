@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 *,*::before,*::after {
     box-sizing: border-box;
@@ -11,7 +11,7 @@
   --bg: #0B0C0E; 
   --card: #16181C; 
   --sidebar: #16181C; 
-  --accent: #3b82f6; 
+  --accent: #22c55e; /* Forced Green for user preference */
   --green: #00FFA3; 
   --red: #FF4B55; 
   --gold: #F7931A; 
@@ -24,7 +24,7 @@
   --card-inset: #1A1A1A; 
   --glass-bg: rgba(22,24,28,0.92);
   --btn-text-buy: #000;
-  --font-head: 'Inter', sans-serif; 
+  --font-head: 'Plus Jakarta Sans', 'Inter', sans-serif; 
   --font-body: 'Inter', sans-serif; 
   --font-mono: 'JetBrains Mono', monospace;
 
@@ -139,12 +139,38 @@ button { cursor: pointer; border: none; }
 .quick-btn { background: var(--card-inset); border-radius: 10px; padding: 14px; color: var(--text); display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 14px; margin-bottom: 12px; width: 100%; text-align: left; transition: all 0.3s ease; border: 1px solid var(--border-light); }
 .quick-btn:hover { border-color: rgba(16,208,122,.5); transform: translateY(-2px); }
 
-.market-scroll { display: flex; gap: 16px; overflow-x: auto; padding: 4px 4px 12px 4px; margin: 0 -4px 20px -4px; scrollbar-width: none; }
+.market-scroll { display: flex; gap: 16px; overflow-x: auto; padding: 20px 8px 20px 8px; margin: -10px -8px 20px -8px; scrollbar-width: none; }
 .market-scroll::-webkit-scrollbar { display: none; }
-.market-item { background: var(--card-alt); border-radius: 12px; padding: 16px; min-width: 200px; flex-shrink: 0; }
+.market-item { 
+    background: var(--card-alt); 
+    border-radius: 12px; 
+    padding: 16px; 
+    min-width: 200px; 
+    flex-shrink: 0; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+}
+.market-item:hover {
+    transform: translateY(-8px);
+    border-color: rgba(34, 197, 94, 0.2);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(34, 197, 94, 0.05);
+}
 
 .movers-list { background: var(--card-alt); border: 1px solid var(--border); border-radius: 16px; padding: 12px 24px; }
-.mover-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.mover-row { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 16px 0; 
+    border-bottom: 1px solid var(--border); 
+    transition: all 0.2s ease;
+}
+.mover-row:hover { 
+    background: rgba(255, 255, 255, 0.02); 
+    padding-left: 8px;
+    padding-right: 8px;
+    border-radius: 8px;
+}
 .mover-row:last-child { border-bottom: none; }
 
 .top-nav { display: flex; gap: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; }
@@ -225,9 +251,20 @@ button { cursor: pointer; border: none; }
     border: 3px solid var(--border);
     border-top-color: var(--green);
     border-radius: 50%;
-    animation: chartSpin 0.8s linear infinite;
+    animation: chartSpin 0.8s linear infinite, fadePulse 2s ease-in-out infinite;
 }
 @keyframes chartSpin { to { transform: rotate(360deg); } }
+@keyframes fadePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* Global Widget Entrance */
+.dashboard-widget {
+    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.dashboard-widget:nth-child(1) { animation-delay: 0.1s; }
+.dashboard-widget:nth-child(2) { animation-delay: 0.2s; }
+.dashboard-widget:nth-child(3) { animation-delay: 0.3s; }
+.dashboard-widget:nth-child(4) { animation-delay: 0.4s; }
+.dashboard-widget:nth-child(5) { animation-delay: 0.5s; }
 
 /* Commodities Grid */
 .commodities-grid {
@@ -436,7 +473,9 @@ button { cursor: pointer; border: none; }
     border-radius: 6px;
     display: inline-block;
     font-family: var(--font-mono);
+    transition: transform 0.2s;
 }
+.tint-up:hover { transform: scale(1.1); }
 .tint-down {
     background-color: rgba(239, 68, 68, 0.1) !important;
     color: var(--red) !important;
@@ -444,7 +483,9 @@ button { cursor: pointer; border: none; }
     border-radius: 6px;
     display: inline-block;
     font-family: var(--font-mono);
+    transition: transform 0.2s;
 }
+.tint-down:hover { transform: scale(1.1); }
 
 /* ─── SENTIMENT ENGINE ─── */
 .sentiment-grid {
@@ -541,4 +582,4 @@ button { cursor: pointer; border: none; }
 #chartContainer a[href*="tradingview"],
 #chartContainer div[style*="z-index"][style*="bottom"] a {
     display: none !important;
-}
+}  
