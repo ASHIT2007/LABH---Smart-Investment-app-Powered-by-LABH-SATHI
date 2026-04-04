@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>World Finance & Threat Globe Simulator</title>
+    <style>
+      /* -------------------------------------------------------------
+       Base page layout
+       ------------------------------------------------------------- */
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #050a14; /* Night sky; ocean is on the globe */
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Arial,
+          sans-serif;
+        color: #e8ecff;
+      }
+
+      #globe-viz {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      /* Optional top-left label */
+      .hud {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        z-index: 20;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #bdc8ff;
+        background: rgba(20, 26, 42, 0.42);
+        border: 1px solid rgba(130, 150, 255, 0.18);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        max-width: min(420px, 92vw);
+      }
+
+      .hud-sub {
+        margin-top: 6px;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: none;
+        line-height: 1.35;
+        color: #9aaee0;
+      }
+
+      /* -------------------------------------------------------------
+       Pulsating threat markers (DOM elements mounted on globe points)
+       ------------------------------------------------------------- */
+      .threat-marker {
+        position: relative;
+        width: 16px;
+        height: 16px;
+        border-radius: 999px;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+        pointer-events: auto;
+        z-index: 5;
+        /* Core glow color defaults (red/orange themes below override as needed) */
+        --core: #ff4d4d;
+        --ring: rgba(255, 95, 95, 0.55);
+        --soft: rgba(255, 95, 95, 0.18);
+        background: radial-gradient(
+          circle at 30% 30%,
+          #fff 0%,
+          var(--core) 45%,
+          #c61b1b 100%
+        );
+        box-shadow:
+          0 0 10px var(--core),
+          0 0 24px var(--ring),
+          inset 0 0 5px rgba(255, 255, 255, 0.45);
+        animation: pulse-core 2s ease-out infinite;
+      }
+
+      .threat-marker::before,
+      .threat-marker::after {
+        content: "";
+        position: absolute;
+        inset: -8px;
+        border-radius: inherit;
+        border: 2px solid var(--ring);
+        opacity: 0;
+        animation: pulse-ring 2.2s ease-out infinite;
+      }
+
+      .threat-marker::after {
+        animation-delay: 1.1s;
+      }
+
+      .threat-marker--orange {
+        --core: #ff9d2e;
+        --ring: rgba(255, 170, 70, 0.55);
+        --soft: rgba(255, 170, 70, 0.18);
+        background: radial-gradient(
+          circle at 30% 30%,
+          #fff7ea 0%,
+          var(--core) 50%,
+          #d56700 100%
+        );
+      }
+
+      .threat-marker--green {
+        --core: #4dff88;
+        --ring: rgba(77, 255, 136, 0.55);
+        --soft: rgba(77, 255, 136, 0.18);
+        background: radial-gradient(
+          circle at 30% 30%,
+          #f0fff4 0%,
+          var(--core) 50%,
+          #00d54a 100%
+        );
+      }
+
+      .threat-marker--yellow {
+        --core: #f5e042;
+        --ring: rgba(245, 224, 66, 0.55);
+        --soft: rgba(245, 224, 66, 0.18);
+        background: radial-gradient(
+          circle at 30% 30%,
+          #fffdeb 0%,
+          var(--core) 50%,
+          #d5c300 100%
+        );
+      }
+
+      .threat-marker:hover {
+        transform: translate(-50%, -50%) scale(1.08);
+        filter: brightness(1.08);
+      }
+
+      @keyframes pulse-core {
+        0%,
+        100% {
+          box-shadow:
+            0 0 10px var(--core),
+            0 0 24px var(--ring),
+            inset 0 0 5px rgba(255, 255, 255, 0.45);
+        }
+        50% {
+          box-shadow:
+            0 0 14px var(--core),
+            0 0 30px var(--ring),
+            0 0 44px var(--soft),
+            inset 0 0 5px rgba(255, 255, 255, 0.55);
+        }
+      }
+
+      @keyframes pulse-ring {
+        0% {
+          transform: scale(0.5);
+          opacity: 0.75;
+        }
+        100% {
+          transform: scale(2.15);
+          opacity: 0;
+        }
+      }
+
+      /* -------------------------------------------------------------
+       Glassmorphism tooltip
+       ------------------------------------------------------------- */
+      #threat-tooltip {
+        position: fixed;
+        max-width: 400px;
+        pointer-events: none;
+        z-index: 40;
+        opacity: 0;
+        transform: translate3d(0, 0, 0);
+        transition: opacity 0.14s ease;
+
+        background: linear-gradient(
+          160deg,
+          rgba(24, 32, 52, 0.72),
+          rgba(16, 21, 36, 0.62)
+        );
+        border: 1px solid rgba(154, 176, 255, 0.22);
+        border-radius: 14px;
+        box-shadow: 0 14px 36px rgba(4, 8, 20, 0.55);
+        backdrop-filter: blur(14px) saturate(135%);
+        -webkit-backdrop-filter: blur(14px) saturate(135%);
+        padding: 11px 12px;
+      }
+
+      #threat-tooltip.visible {
+        opacity: 1;
+      }
+
+      .tt-title {
+        margin: 0 0 6px;
+        font-size: 13px;
+        line-height: 1.35;
+        font-weight: 700;
+        color: #f2f5ff;
+      }
+
+      .tt-news {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: #cbd6ff;
+      }
+
+      .tt-region {
+        margin: 0 0 8px;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #8ea0d4;
+      }
+
+      .tt-stocks {
+        margin: 0 0 10px;
+        padding: 0;
+        list-style: none;
+        font-size: 11px;
+        line-height: 1.45;
+        color: #dfe6ff;
+      }
+
+      .tt-stocks li {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 10px;
+        padding: 3px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .tt-stocks li span:nth-child(2) {
+        flex: 1;
+        min-width: 0;
+        color: #c5d2f5;
+        font-size: 10px;
+      }
+
+      .tt-stocks li:last-child {
+        border-bottom: none;
+      }
+
+      .tt-tick {
+        font-family: ui-monospace, monospace;
+        font-weight: 700;
+        color: #a8c4ff;
+      }
+      .tt-drop {
+        font-family: ui-monospace, monospace;
+        font-weight: 600;
+      }
+      .tt-drop--down {
+        color: #ff7a7a;
+      }
+      .tt-drop--up {
+        color: #7dffb3;
+      }
+
+      .tt-px {
+        font-size: 10px;
+        font-weight: 500;
+        opacity: 0.75;
+        margin-left: 4px;
+      }
+
+      /* -------------------------------------------------------------
+       Exit Button
+       ------------------------------------------------------------- */
+      .exit-button {
+        position: fixed;
+        top: 14px;
+        right: 14px;
+        z-index: 100;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(20, 26, 42, 0.6);
+        border: 1px solid rgba(130, 150, 255, 0.25);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #cbd6ff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .exit-button:hover {
+        background: rgba(130, 150, 255, 0.2);
+        border-color: rgba(130, 150, 255, 0.5);
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow:
+          0 6px 20px rgba(0, 0, 0, 0.4),
+          0 0 15px rgba(130, 150, 255, 0.2);
+      }
+
+      .exit-button:active {
+        transform: translateY(0);
+      }
+
+      .exit-button svg {
+        width: 22px;
+        height: 22px;
+        transition: transform 0.3s ease;
+      }
+
+      .exit-button:hover svg {
+        transform: translateX(-3px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hud">
+      World Finance & Threat Globe
+      <div id="globe-live-status" class="hud-sub">
+        Loading live Yahoo quotes + Groq headlines…
+      </div>
+    </div>
+
+    <a href="../index.html" class="exit-button" title="Back to Dashboard">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </a>
+    <div id="globe-viz"></div>
+    <div id="threat-tooltip" aria-hidden="true"></div>
+
+    <!-- Globe.gl (UMD) and dependency graph from CDNs -->
+    <script src="https://unpkg.com/three"></script>
+    <script src="https://unpkg.com/globe.gl"></script>
+    <!-- Turf: centroids for country name labels (Natural Earth polygons are MultiPolygon-safe) -->
+    <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+
+    <script>
+      /**
+       * Live data: GET /api/globe-threat-zones
+       * - Yahoo Finance: session % and last price per ticker (server-side)
+       * - Groq: one headline per zone (requires GROQ_API_KEY on server); else Yahoo RSS / numeric fallback
+       * Open this page via the Express app (npm start), not file://, or the API call will fail.
+       */
+
+      let threatZones = [];
+      let marketPulse = [];
+      let countryCentroids = {};
+      let globe = null;
+      let controls = null;
+      let isAutoRotateEnabled = true;
+      let aiPoweredGlobal = false;
+
+      const container = document.getElementById("globe-viz");
+      const tooltip = document.getElementById("threat-tooltip");
+
+      /** Natural Earth 110m admin-0 countries — public domain, CORS-enabled on raw.githubusercontent.com */
+      const NE_COUNTRIES_GEOJSON =
+        "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson";
+
+      /** Solid dark-blue “ocean” for the sphere; uniform grey bump = flat (no terrain ridges on water). */
+      const GLOBE_OCEAN_TEXTURE =
+        "data:image/svg+xml," +
+        encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#071d33"/></svg>',
+        );
+      const GLOBE_FLAT_BUMP =
+        "data:image/svg+xml," +
+        encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#808080"/></svg>',
+        );
+
+      /**
+       * Country outlines + one label per sovereign feature (centroid of geometry).
+       */
+      async function loadCountryOutlinesAndLabels() {
+        if (!globe) return;
+        const res = await fetch(NE_COUNTRIES_GEOJSON, { mode: "cors" });
+        if (!res.ok)
+          throw new Error("Failed to load Natural Earth countries GeoJSON");
+
+        const geo = await res.json();
+        const features = geo.features || [];
+
+        globe
+          .polygonsData(features)
+          .polygonGeoJsonGeometry("geometry")
+          .polygonAltitude(0.0022)
+          .polygonCapColor(() => "rgba(118, 124, 136, 0.92)")
+          .polygonSideColor(() => "rgba(72, 76, 86, 0.95)")
+          .polygonStrokeColor(() => "rgba(52, 56, 64, 0.88)")
+          .polygonCapCurvatureResolution(4)
+          .polygonLabel((d) => {
+            const p = d.properties || {};
+            return p.ADMIN || p.NAME || p.NAME_LONG || "";
+          });
+
+        const turfGlobal = typeof turf !== "undefined" ? turf : window.turf;
+        const labels = [];
+        if (turfGlobal && typeof turfGlobal.centroid === "function") {
+          for (const f of features) {
+            try {
+              const c = turfGlobal.centroid(f);
+              const [lng, lat] = c.geometry.coordinates;
+              const p = f.properties || {};
+              const text = p.NAME_LONG || p.NAME || p.ADMIN || p.BRK_NAME || "";
+              if (!text) continue;
+              const labelrank = Number(p.LABELRANK);
+              const lr = Number.isFinite(labelrank) ? labelrank : 6;
+              countryCentroids[p.ISO_A2 || p.ADM0_A3] = { lat, lng };
+              labels.push({
+                lat,
+                lng,
+                text,
+                labelrank: lr,
+              });
+            } catch (e) {
+              /* skip invalid geometries */
+            }
+          }
+
+          globe
+            .labelsData(labels)
+            .labelLat("lat")
+            .labelLng("lng")
+            .labelText("text")
+            .labelColor(() => "rgba(245, 246, 250, 0.94)")
+            .labelSize((d) => {
+              const lr = Number(d.labelrank) || 6;
+              return Math.max(0.09, 0.48 - lr * 0.055);
+            })
+            .labelDotRadius(0)
+            .labelIncludeDot(false)
+            .labelAltitude(0.0025)
+            .labelResolution(2);
+        }
+      }
+
+      /** Worst session % (live) drives red vs orange marker glow */
+      function zoneStressDrop(zone) {
+        const drops = (zone.topStocks || [])
+          .map((s) => s.stockDrop)
+          .filter((v) => Number.isFinite(v));
+        return drops.length ? Math.min(...drops) : 0;
+      }
+
+      function primaryAffectedStock(zone) {
+        const first = zone.topStocks && zone.topStocks[0];
+        return first
+          ? {
+              ticker: first.ticker,
+              company: first.name,
+              stockDrop: first.stockDrop,
+              price: first.price,
+            }
+          : null;
+      }
+
+      async function fetchThreatZones() {
+        const res = await fetch("/api/globe-threat-zones", {
+          credentials: "same-origin",
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      }
+
+      async function fetchMarketPulse() {
+        const res = await fetch("/api/global-market-pulse", {
+          credentials: "same-origin",
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return await res.json();
+      }
+
+      function mergePulseWithCentroids(pulseData) {
+        return pulseData.pulse
+          .map((p) => {
+            const centroid = countryCentroids[p.countryCode];
+            if (centroid) {
+              return {
+                ...p,
+                lat: centroid.lat,
+                lng: centroid.lng,
+                type: "pulse",
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+      }
+
+      function mountGlobe() {
+        const combinedData = [
+          ...threatZones.map((z) => ({ ...z, type: "threat" })),
+          ...mergePulseWithCentroids(marketPulse),
+        ];
+
+        globe = Globe()(container)
+          .globeImageUrl(GLOBE_OCEAN_TEXTURE)
+          .bumpImageUrl(GLOBE_FLAT_BUMP)
+          .backgroundColor("#050a14")
+          .htmlElementsData(combinedData)
+          .htmlElement((d) => {
+            const el = document.createElement("div");
+            const stress = d.type === "threat" ? zoneStressDrop(d) : d.change;
+
+            let colorClass = "";
+            if (d.type === "threat") {
+              colorClass = Math.abs(stress) >= 2 ? "" : "threat-marker--orange";
+            } else {
+              // Market Pulse logic
+              if (stress <= -1.5)
+                colorClass = ""; // Red
+              else if (stress >= 1.5) colorClass = "threat-marker--green";
+              else colorClass = "threat-marker--yellow";
+            }
+
+            el.className = `threat-marker ${colorClass}`.trim();
+
+            el.addEventListener("mouseenter", (evt) => {
+              if (d.type === "threat") showTooltip(evt, d);
+              else showPulseTooltip(evt, d);
+            });
+            el.addEventListener("mousemove", moveTooltip);
+            el.addEventListener("mouseleave", hideTooltip);
+
+            el.addEventListener("click", () => {
+              stopAutoRotate();
+              globe.pointOfView(
+                { lat: d.lat, lng: d.lng, altitude: 1.5 },
+                1000,
+              );
+            });
+
+            return el;
+          });
+
+        globe.pointOfView({ lat: 18, lng: 12, altitude: 2.2 }, 0);
+
+        controls = globe.controls();
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.22;
+        controls.minDistance = 110;
+        controls.maxDistance = 500;
+
+        globe.atmosphereColor("#3d5a8a");
+        globe.atmosphereAltitude(0.18);
+
+        window.addEventListener("resize", () => {
+          globe.width(window.innerWidth);
+          globe.height(window.innerHeight);
+        });
+      }
+
+      function stopAutoRotate() {
+        if (!isAutoRotateEnabled || !controls) return;
+        isAutoRotateEnabled = false;
+        controls.autoRotate = false;
+      }
+
+      function formatDrop(n) {
+        const v = Number(n);
+        if (!Number.isFinite(v)) return "—";
+        const sign = v > 0 ? "+" : "";
+        return sign + v.toFixed(1) + "%";
+      }
+
+      function showTooltip(evt, zone) {
+        const stocksHtml = (zone.topStocks || [])
+          .map((s) => {
+            const v = Number(s.stockDrop);
+            const down = Number.isFinite(v) && v < 0;
+            const up = Number.isFinite(v) && v > 0;
+            const cls = down ? "tt-drop--down" : up ? "tt-drop--up" : "";
+            const px = Number.isFinite(s.price)
+              ? `<span class="tt-px">@ ${s.price.toFixed(2)}${s.currency ? " " + escapeHtml(s.currency) : ""}</span>`
+              : "";
+            return `<li><span class="tt-tick">${escapeHtml(s.ticker)}</span><span>${escapeHtml(s.name)}</span><span class="tt-drop ${cls}">${formatDrop(s.stockDrop)}${px}</span></li>`;
+          })
+          .join("");
+
+        tooltip.innerHTML = `
+        <p class="tt-region">${escapeHtml(zone.regionLabel || "")}</p>
+        <p class="tt-title">${escapeHtml(zone.threatName)}</p>
+        <ul class="tt-stocks">${stocksHtml}</ul>
+        <p class="tt-news">${escapeHtml(zone.newsHeadline || "")}</p>
+      `;
+        tooltip.classList.add("visible");
+        tooltip.setAttribute("aria-hidden", "false");
+        moveTooltip(evt);
+      }
+
+      function moveTooltip(evt) {
+        const pad = 14;
+        const x = evt.clientX + 14;
+        const y = evt.clientY + 14;
+        const maxX = window.innerWidth - tooltip.offsetWidth - pad;
+        const maxY = window.innerHeight - tooltip.offsetHeight - pad;
+        tooltip.style.left = Math.min(x, maxX) + "px";
+        tooltip.style.top = Math.min(y, maxY) + "px";
+      }
+
+      function hideTooltip() {
+        tooltip.classList.remove("visible");
+        tooltip.setAttribute("aria-hidden", "true");
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function showPulseTooltip(evt, country) {
+        const stocksHtml = (country.topStocks || [])
+          .map((s) => {
+            const v = Number(s.change);
+            const down = Number.isFinite(v) && v < 0;
+            const up = Number.isFinite(v) && v > 0;
+            const cls = down ? "tt-drop--down" : up ? "tt-drop--up" : "";
+            const px = Number.isFinite(s.price)
+              ? `<span class="tt-px">@ ${s.price.toFixed(2)}${s.currency ? " " + escapeHtml(s.currency) : ""}</span>`
+              : "";
+            return `<li><span class="tt-tick">${escapeHtml(s.ticker)}</span><span>${escapeHtml(s.name)}</span><span class="tt-drop ${cls}">${formatDrop(s.change)}${px}</span></li>`;
+          })
+          .join("");
+
+        const vIndex = Number(country.change);
+        const indexCls =
+          vIndex < 0 ? "tt-drop--down" : vIndex > 0 ? "tt-drop--up" : "";
+
+        tooltip.innerHTML = `
+        <p class="tt-region">${escapeHtml(country.name)}</p>
+        <p class="tt-title">Market Health: <span class="${indexCls}">${formatDrop(country.change)}</span></p>
+        <p class="tt-news" style="margin-bottom: 8px; font-weight: 600; color: #fff;">Top Tickers & Movers</p>
+        <ul class="tt-stocks">${stocksHtml}</ul>
+        <p class="tt-news">Representative Index: ${escapeHtml(country.indexTicker)}</p>
+      `;
+        tooltip.classList.add("visible");
+        tooltip.setAttribute("aria-hidden", "false");
+        moveTooltip(evt);
+      }
+
+      async function boot() {
+        const statusEl = document.getElementById("globe-live-status");
+        let baseStatus = "";
+
+        try {
+          statusEl.textContent = "Loading market data…";
+          // 1. Initial border load to get centroids
+          const resCountries = await fetch(NE_COUNTRIES_GEOJSON, {
+            mode: "cors",
+          });
+          const geoJSON = await resCountries.json();
+          const features = geoJSON.features || [];
+
+          const turfGlobal = typeof turf !== "undefined" ? turf : window.turf;
+          for (const f of features) {
+            try {
+              const c = turfGlobal.centroid(f);
+              const [lng, lat] = c.geometry.coordinates;
+              const p = f.properties || {};
+              const iso = p.ISO_A2 || p.ADM0_A3;
+              if (iso && iso !== "-99") countryCentroids[iso] = { lat, lng };
+            } catch (e) {}
+          }
+
+          // 2. Load threat zones + market pulse
+          const [threatData, pulseData] = await Promise.all([
+            fetchThreatZones(),
+            fetchMarketPulse(),
+          ]);
+
+          threatZones = threatData.zones || [];
+          marketPulse = pulseData;
+          aiPoweredGlobal = threatData.aiPowered;
+
+          baseStatus = `Global Market Pulse: Live · Tickers: ${pulseData.pulse?.length || 0}`;
+          statusEl.textContent = baseStatus;
+
+          mountGlobe(); // This will use centroids
+
+          // Final border visuals
+          statusEl.textContent = baseStatus + " · Loading country borders…";
+          await loadCountryOutlinesAndLabels();
+        } catch (e) {
+          console.error(e);
+          statusEl.textContent = "Failed to load live globe data.";
+        }
+
+        // Refresh every 2 minutes
+        setInterval(async () => {
+          try {
+            const [threatData, pulseData] = await Promise.all([
+              fetchThreatZones(),
+              fetchMarketPulse(),
+            ]);
+            threatZones = threatData.zones || [];
+            marketPulse = pulseData;
+
+            const combinedData = [
+              ...threatZones.map((z) => ({ ...z, type: "threat" })),
+              ...mergePulseWithCentroids(marketPulse),
+            ];
+            globe.htmlElementsData(combinedData);
+          } catch (err) {
+            console.warn("Refresh failed", err);
+          }
+        }, 120000);
+      }
+
+      boot();
+    </script>
+  </body>
+</html>
