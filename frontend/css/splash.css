@@ -1,0 +1,163 @@
+/* Splash Screen Styles - Advanced 60fps Glassmorphic Sequence */
+:root {
+  --splash-bg: #080808; /* Premium deep black */
+  --splash-accent: #10b981;
+}
+
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  background-color: var(--splash-bg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  transition: opacity 0.8s ease, backdrop-filter 0.8s ease;
+  will-change: opacity;
+}
+
+#splash-screen.splash-complete {
+  pointer-events: none;
+  opacity: 0;
+  backdrop-filter: blur(0px);
+}
+
+/* Base structural layout */
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  will-change: transform, scale;
+  transition: transform 1s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* The core brand group (Logo + Text) */
+.splash-brand-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transform: scale(0.6);
+  will-change: transform, opacity;
+  transition: opacity 1.5s ease, transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.splash-logo-svg {
+  width: 52px;
+  height: 52px;
+}
+
+.splash-text {
+  font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  background: linear-gradient(135deg, #ffffff, #94a3b8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  line-height: 1;
+}
+
+/* Linear flowing light bar */
+.splash-loader-container {
+  width: 140px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-10px);
+  will-change: transform, opacity;
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.splash-loader-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, var(--splash-accent) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: loadingFlow 1.5s linear infinite;
+  will-change: background-position;
+}
+
+@keyframes loadingFlow {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* --- Phase 1: High-Impact Brand Reveal (0.0s - 1.8s) --- */
+#splash-screen.splash-step-1 .splash-brand-block {
+  opacity: 1;
+  transform: scale(1.1); /* 50% larger visually */
+}
+
+/* Light bar fades in beneath brand block at peak scale */
+#splash-screen.splash-step-1-loader .splash-loader-container {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Phase 2: Synchronized Transition (1.8s - 2.8s) --- */
+/* Entire group shifts upward perfectly and scales down */
+#splash-screen.splash-step-2 .splash-content {
+  transform: translateY(calc(-50vh + 36px)) scale(0.65); /* Shifts exactly to the header position and scales down */
+}
+
+/* Fade out the loader during the upward shift */
+#splash-screen.splash-step-2 .splash-loader-container {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition-duration: 0.5s;
+}
+
+/* --- Phase 3: Content Flow Integration (2.5s - 3.5s) --- */
+/* Initial state for the main app UI */
+.app-hidden {
+  opacity: 0;
+  transform: translateY(40px);
+  pointer-events: none;
+}
+
+/* Staggered fade in for the main UI */
+.app-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1), transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: auto;
+}
+
+/* Staggered internal elements */
+.app-visible .dashboard-widget, 
+.app-visible .glass-card,
+.app-visible .quick-trade-grid > button {
+  animation: staggerFadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Set dynamic delays for stagger effect */
+.app-visible .glass-card:nth-child(1) { animation-delay: 0.1s; }
+.app-visible .glass-card:nth-child(2) { animation-delay: 0.2s; }
+.app-visible .glass-card:nth-child(3) { animation-delay: 0.3s; }
+.app-visible .glass-card:nth-child(4) { animation-delay: 0.4s; }
+
+.app-visible .dashboard-widget:nth-child(1) { animation-delay: 0.3s; }
+.app-visible .dashboard-widget:nth-child(2) { animation-delay: 0.4s; }
+.app-visible .dashboard-widget:nth-child(3) { animation-delay: 0.5s; }
+
+@keyframes staggerFadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

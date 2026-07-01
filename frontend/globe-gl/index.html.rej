@@ -1,0 +1,85 @@
+--- frontend/globe-gl/index.html
++++ frontend/globe-gl/index.html
+@@ -371,6 +371,22 @@
+       let threatZones = [];
+       let marketPulse = [];
+       let countryCentroids = {};
++      const FALLBACK_COUNTRY_CENTROIDS = {
++        US: { lat: 39.8, lng: -98.6 },
++        CA: { lat: 56.1, lng: -106.3 },
++        MX: { lat: 23.6, lng: -102.5 },
++        GB: { lat: 55.4, lng: -3.4 },
++        DE: { lat: 51.2, lng: 10.4 },
++        FR: { lat: 46.2, lng: 2.2 },
++        IT: { lat: 41.9, lng: 12.6 },
++        IN: { lat: 20.6, lng: 78.9 },
++        CN: { lat: 35.9, lng: 104.2 },
++        JP: { lat: 36.2, lng: 138.3 },
++        KR: { lat: 35.9, lng: 127.8 },
++        AU: { lat: -25.3, lng: 133.8 },
++        BR: { lat: -14.2, lng: -51.9 },
++        ZA: { lat: -30.6, lng: 22.9 },
++      };
+       let globe = null;
+       let controls = null;
+       let isAutoRotateEnabled = true;
+@@ -676,22 +692,30 @@
+ 
+         try {
+           statusEl.textContent = "Loading market data…";
++          countryCentroids = { ...FALLBACK_COUNTRY_CENTROIDS };
+           // 1. Initial border load to get centroids
+-          const resCountries = await fetch(NE_COUNTRIES_GEOJSON, {
+-            mode: "cors",
+-          });
+-          const geoJSON = await resCountries.json();
+-          const features = geoJSON.features || [];
+-
+-          const turfGlobal = typeof turf !== "undefined" ? turf : window.turf;
+-          for (const f of features) {
+-            try {
+-              const c = turfGlobal.centroid(f);
+-              const [lng, lat] = c.geometry.coordinates;
+-              const p = f.properties || {};
+-              const iso = p.ISO_A2 || p.ADM0_A3;
+-              if (iso && iso !== "-99") countryCentroids[iso] = { lat, lng };
+-            } catch (e) {}
++          try {
++            const resCountries = await fetch(NE_COUNTRIES_GEOJSON, {
++              mode: "cors",
++            });
++            if (!resCountries.ok) {
++              throw new Error("HTTP " + resCountries.status);
++            }
++            const geoJSON = await resCountries.json();
++            const features = geoJSON.features || [];
++
++            const turfGlobal = typeof turf !== "undefined" ? turf : window.turf;
++            for (const f of features) {
++              try {
++                const c = turfGlobal.centroid(f);
++                const [lng, lat] = c.geometry.coordinates;
++                const p = f.properties || {};
++                const iso = p.ISO_A2 || p.ADM0_A3;
++                if (iso && iso !== "-99") countryCentroids[iso] = { lat, lng };
++              } catch (e) {}
++            }
++          } catch (centroidError) {
++            console.warn("Country centroids fallback active", centroidError);
+           }
+ 
+           // 2. Load threat zones + market pulse
+@@ -711,7 +735,12 @@
+ 
+           // Final border visuals
+           statusEl.textContent = baseStatus + " · Loading country borders…";
+-          await loadCountryOutlinesAndLabels();
++          try {
++            await loadCountryOutlinesAndLabels();
++          } catch (borderError) {
++            console.warn("Country borders unavailable", borderError);
++            statusEl.textContent = baseStatus + " · Country borders unavailable";
++          }
+         } catch (e) {
+           console.error(e);
+           statusEl.textContent = "Failed to load live globe data.";

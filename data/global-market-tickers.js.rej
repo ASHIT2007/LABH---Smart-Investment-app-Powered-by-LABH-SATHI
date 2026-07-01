@@ -1,0 +1,11 @@
+--- data/global-market-tickers.js
++++ data/global-market-tickers.js
+@@ -88,7 +88,7 @@ export const GLOBAL_MARKET_TICKERS = {
+     topStocks: [
+       { ticker: "TCEHY", name: "Tencent" },
+       { ticker: "BABA", name: "Alibaba" },
+-      { ticker: "美团-W", name: "Meituan" },
++      { ticker: "3690.HK", name: "Meituan" },
+     ],
+   },
+   JP: {

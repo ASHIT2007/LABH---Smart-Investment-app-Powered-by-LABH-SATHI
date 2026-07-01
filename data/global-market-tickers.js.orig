@@ -71,6 +71,47 @@ export const GLOBAL_MARKET_TICKERS = {
       { ticker: "ISP.MI", name: "Intesa Sanpaolo" },
     ],
   },
+  CH: {
+    ticker: "EWL",
+    name: "MSCI Switzerland",
+    topStocks: [
+      { ticker: "NESN.SW", name: "Nestlé" },
+      { ticker: "ROG.SW", name: "Roche" },
+      { ticker: "NOVN.SW", name: "Novartis" },
+    ],
+  },
+  NL: {
+    ticker: "EWN",
+    name: "MSCI Netherlands",
+    topStocks: [
+      { ticker: "ASML", name: "ASML" },
+      { ticker: "UNA.AS", name: "Unilever" },
+    ],
+  },
+  ES: {
+    ticker: "EWP",
+    name: "MSCI Spain",
+    topStocks: [
+      { ticker: "SAN", name: "Banco Santander" },
+      { ticker: "IBE.MC", name: "Iberdrola" },
+    ],
+  },
+  SE: {
+    ticker: "EWD",
+    name: "MSCI Sweden",
+    topStocks: [
+      { ticker: "ERIC", name: "Ericsson" },
+      { ticker: "VOLV-B.ST", name: "Volvo" },
+    ],
+  },
+  NO: {
+    ticker: "ENOR",
+    name: "MSCI Norway",
+    topStocks: [
+      { ticker: "EQNR", name: "Equinor" },
+      { ticker: "DNB.OL", name: "DNB Bank" },
+    ],
+  },
 
   // Asia-Pacific
   IN: {
@@ -88,7 +129,6 @@ export const GLOBAL_MARKET_TICKERS = {
     topStocks: [
       { ticker: "TCEHY", name: "Tencent" },
       { ticker: "BABA", name: "Alibaba" },
-      { ticker: "3690.HK", name: "Meituan" },
     ],
   },
   JP: {
@@ -97,7 +137,6 @@ export const GLOBAL_MARKET_TICKERS = {
     topStocks: [
       { ticker: "TM", name: "Toyota" },
       { ticker: "SONY", name: "Sony" },
-      { ticker: "6758.T", name: "Keyence" },
     ],
   },
   KR: {
@@ -108,6 +147,44 @@ export const GLOBAL_MARKET_TICKERS = {
       { ticker: "000660.KS", name: "SK Hynix" },
     ],
   },
+  HK: {
+    ticker: "EWH",
+    name: "MSCI Hong Kong",
+    topStocks: [
+      { ticker: "0005.HK", name: "HSBC Holdings" },
+      { ticker: "0700.HK", name: "Tencent" },
+    ],
+  },
+  SG: {
+    ticker: "EWS",
+    name: "MSCI Singapore",
+    topStocks: [
+      { ticker: "D05.SI", name: "DBS Group" },
+      { ticker: "U11.SI", name: "UOB" },
+    ],
+  },
+  TW: {
+    ticker: "EWT",
+    name: "MSCI Taiwan",
+    topStocks: [
+      { ticker: "TSM", name: "TSMC" },
+      { ticker: "2317.TW", name: "Hon Hai" },
+    ],
+  },
+  TH: {
+    ticker: "THD",
+    name: "MSCI Thailand",
+    topStocks: [
+      { ticker: "PTT.BK", name: "PTT" },
+    ],
+  },
+  ID: {
+    ticker: "EIDO",
+    name: "MSCI Indonesia",
+    topStocks: [
+      { ticker: "TLKM.JK", name: "Telkom Indonesia" },
+    ],
+  },
   AU: {
     ticker: "EWA",
     name: "MSCI Australia",
@@ -116,6 +193,45 @@ export const GLOBAL_MARKET_TICKERS = {
       { ticker: "CBA.AX", name: "Commonwealth Bank" },
     ],
   },
+  NZ: {
+    ticker: "ENZL",
+    name: "MSCI New Zealand",
+    topStocks: [
+      { ticker: "FPH.NZ", name: "Fisher & Paykel" },
+    ],
+  },
+
+  // Middle East
+  SA: {
+    ticker: "KSA",
+    name: "MSCI Saudi Arabia",
+    topStocks: [
+      { ticker: "2222.SR", name: "Saudi Aramco" },
+    ],
+  },
+  AE: {
+    ticker: "UAE",
+    name: "MSCI UAE",
+    topStocks: [
+      { ticker: "FAB.AD", name: "First Abu Dhabi Bank" },
+    ],
+  },
+  IL: {
+    ticker: "EIS",
+    name: "MSCI Israel",
+    topStocks: [
+      { ticker: "TEVA", name: "Teva Pharmaceutical" },
+    ],
+  },
+  TR: {
+    ticker: "TUR",
+    name: "MSCI Turkey",
+    topStocks: [
+      { ticker: "THYAO.IS", name: "Turkish Airlines" },
+    ],
+  },
+
+  // South America
   BR: {
     ticker: "EWZ",
     name: "MSCI Brazil",
@@ -124,12 +240,42 @@ export const GLOBAL_MARKET_TICKERS = {
       { ticker: "VALE", name: "Vale" },
     ],
   },
+  CL: {
+    ticker: "ECH",
+    name: "MSCI Chile",
+    topStocks: [
+      { ticker: "SQM", name: "SQM" },
+    ],
+  },
+  AR: {
+    ticker: "ARGT",
+    name: "MSCI Argentina",
+    topStocks: [
+      { ticker: "YPF", name: "YPF" },
+    ],
+  },
+
+  // Africa
   ZA: {
     ticker: "EZA",
     name: "MSCI South Africa",
     topStocks: [
       { ticker: "NPN.JO", name: "Naspers" },
       { ticker: "FSR.JO", name: "FirstRand" },
+    ],
+  },
+  NG: {
+    ticker: "NGE",
+    name: "MSCI Nigeria",
+    topStocks: [
+      { ticker: "DANGCEM.LG", name: "Dangote Cement" },
+    ],
+  },
+  EG: {
+    ticker: "EGPT",
+    name: "MSCI Egypt",
+    topStocks: [
+      { ticker: "COMI.CA", name: "Commercial Intl Bank" },
     ],
   },
 };

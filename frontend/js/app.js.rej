@@ -1,0 +1,465 @@
+--- frontend/js/app.js
++++ frontend/js/app.js
+@@ -1,12 +1,13 @@
+ import { apiCall, getAuthUser, logout, setAuthUser } from "./api.js";
++import { setupChat } from "./chat.js";
+ 
+ let currentUser = getAuthUser();
+ let marketData = [];
+ let watchlist = JSON.parse(localStorage.getItem("labh_watchlist") || "[]");
+ let marketSearchQuery = "";
+ 
+-// Currency helper: returns $ for intl stocks, Γé╣ for NSE
+-const cur = (stock) => (stock.intl ? "$" : "Γé╣");
++// Currency helper: everything is converted to Γé╣ now
++const cur = (stock) => "Γé╣";
+ 
+ document.addEventListener("DOMContentLoaded", async () => {
+   if (!currentUser) {
+@@ -241,18 +348,50 @@ function renderCommodities() {
+       const isUp = c.change >= 0;
+       const color = CATEGORY_COLORS[c.category] || "#8E929B";
+       const icon = CATEGORY_ICONS[c.category] || "sell";
++      
++      // Handle US Cents (USd) vs US Dollars (USD)
++      const priceInUSD = c.unit.startsWith("USd") ? c.price / 100 : c.price;
++      
++      // Our standard USD -> INR conversion rate is 0.012 (1 INR = 0.012 USD => 1 USD = 83.33 INR)
++      const priceInInr = priceInUSD / 0.012;
++      
++      const currency = typeof window.getSetting === "function" ? window.getSetting("currency") : "INR";
++      
++      let displayUnit = c.unit;
++      if (c.unit.includes("/")) {
++        const parts = c.unit.split("/");
++        // Convert 'USD' or 'USd' to the active currency name
++        displayUnit = currency + "/" + parts[1];
++      }
++
++      let finalPriceInInr = priceInInr;
++      let displayName = c.name;
++      
++      // Convert precious metals from oz to 10g (1 oz = 31.103 grams = 3.11034768 units of 10g)
++      if (c.category === "Precious Metals") {
++        finalPriceInInr = finalPriceInInr / 3.11034768;
++        displayUnit = currency + "/10g";
++        if (displayName.includes("Gold")) displayName = "Gold 24k";
++      }
++
++      const displayPrice = c.price > 0 ? window.formatPrice(finalPriceInInr) : "ΓÇö";
++
+       return `
+-        <div class="commodity-card">
++        <div class="commodity-card" onclick="window.openCommodityModal('${c.sym}')" style="cursor: pointer; transition: all 0.2s;">
+             <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                 <span class="material-symbols-outlined" style="font-size:16px; color:${color};">${icon}</span>
+-                <span class="c-name">${c.name}</span>
++                <span class="c-name">${displayName}</span>
+             </div>
+-            <div class="c-unit">${c.unit}</div>
+-            <div class="c-price" style="color: var(--text); font-family: var(--font-mono);">${c.price > 0 ? c.price.toFixed(2) : "ΓÇö"}</div>
++            <div class="c-unit">${displayUnit}</div>
++            <div class="c-price" style="color: var(--text); font-family: var(--font-mono);">${displayPrice}</div>
+             <div class="c-change tint-${isUp ? "up" : "down"}">${c.price > 0 ? (isUp ? "+" : "") + c.change.toFixed(2) + "%" : "Loading..."}</div>
+         </div>`;
+     })
+     .join("");
++
++  if (window.currentOpenCommodity) {
++    window.openCommodityModal(window.currentOpenCommodity);
++  }
+ }
+ 
+ function setupCommodityFilters() {
+@@ -526,46 +797,42 @@ function renderSentiment() {
+     aiPowered,
+   } = sentimentData;
+ 
+-  // AI Badge
+-  const aiBadge = document.getElementById("sentimentAiBadge");
+-  if (aiBadge) aiBadge.style.display = aiPowered ? "inline-flex" : "none";
+-
+   // Gauge
+   const scoreDisplay = document.getElementById("sentimentScoreDisplay");
+   const moodLabel = document.getElementById("sentimentMoodLabel");
+-  const arc = document.getElementById("sentimentArc");
+   const timestamp = document.getElementById("sentimentTimestamp");
+ 
+   if (scoreDisplay) scoreDisplay.textContent = moodScore;
+ 
+-  const moodColor =
+-    moodScore >= 60
+-      ? "var(--green)"
+-      : moodScore <= 40
+-        ? "var(--red)"
+-        : "var(--gold)";
+-  const moodEmoji =
+-    moodScore >= 70
+-      ? "≡ƒƒó"
+-      : moodScore >= 55
+-        ? "≡ƒƒí"
+-        : moodScore <= 30
+-          ? "≡ƒö┤"
+-          : moodScore <= 45
+-            ? "≡ƒƒá"
+-            : "ΓÜ¬";
++  // Determine zone label and color based on score
++  let zoneName, moodColor;
++  if (moodScore <= 20) {
++    zoneName = "Strong Sell";
++    moodColor = "#ea3943";
++  } else if (moodScore <= 40) {
++    zoneName = "Sell";
++    moodColor = "#ea7b7b";
++  } else if (moodScore <= 60) {
++    zoneName = "Neutral";
++    moodColor = "#b0b0b0";
++  } else if (moodScore <= 80) {
++    zoneName = "Buy";
++    moodColor = "#6bc8a0";
++  } else {
++    zoneName = "Strong Buy";
++    moodColor = "#16c784";
++  }
+ 
+   if (moodLabel) {
+-    moodLabel.textContent = `${moodEmoji} ${overallMood}`;
++    moodLabel.textContent = zoneName;
+     moodLabel.style.color = moodColor;
+   }
+ 
+-  // Arc: total semicircle length Γëê 251.33
+-  const arcLen = 251.33;
+-  const fill = (moodScore / 100) * arcLen;
+-  if (arc) {
+-    arc.setAttribute("stroke", moodColor);
+-    arc.setAttribute("stroke-dasharray", `${fill}, ${arcLen}`);
++  // Needle rotation: score 0 ΓåÆ -90┬░ (left), score 100 ΓåÆ +90┬░ (right)
++  const needle = document.getElementById("sentimentNeedle");
++  if (needle) {
++    const angle = -90 + (moodScore / 100) * 180;
++    needle.style.transform = `rotate(${angle}deg)`;
+   }
+ 
+   if (timestamp && analyzedAt) {
+@@ -790,7 +1074,7 @@ async function fetchMarketsLoop() {
+ 
+ function updateDashboardUI() {
+   // Balances
+-  const displayBalance = `Γé╣${currentUser.balance.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
++  const displayBalance = window.formatPrice(currentUser.balance);
+   document.getElementById("homeCash").textContent = displayBalance;
+   const dropBal = document.getElementById("dropdownBalance");
+   if (dropBal) dropBal.textContent = displayBalance;
+@@ -800,8 +1084,7 @@ function updateDashboardUI() {
+     const mStock = marketData.find((m) => m.sym === p.ticker);
+     portValue += p.qty * (mStock ? mStock.price : p.avgPrice);
+   });
+-  document.getElementById("homePortfolioValue").textContent =
+-    `Γé╣${portValue.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
++  document.getElementById("homePortfolioValue").textContent = window.formatPrice(portValue);
+ 
+   // Update Portfolio Table
+   const tbody = document.querySelector("#portfolioTable tbody");
+@@ -818,9 +1101,9 @@ function updateDashboardUI() {
+                 <tr>
+                     <td style="font-weight:bold;">${p.ticker}</td>
+                     <td>${p.qty}</td>
+-                    <td style="font-family:var(--font-mono);">Γé╣${p.avgPrice.toFixed(2)}</td>
+-                    <td style="font-family:var(--font-mono);">Γé╣${currentPrice.toFixed(2)}</td>
+-                    <td style="font-family:var(--font-mono); font-weight:bold;"><span class="tint-${isProfit ? "up" : "down"}">${isProfit ? "+" : ""}Γé╣${pl.toFixed(2)}</span></td>
++                    <td style="font-family:var(--font-mono);">${window.formatPrice(p.avgPrice)}</td>
++                    <td style="font-family:var(--font-mono);">${window.formatPrice(currentPrice)}</td>
++                    <td style="font-family:var(--font-mono); font-weight:bold;"><span class="tint-${isProfit ? "up" : "down"}">${isProfit ? "+" : ""}${window.formatPrice(pl)}</span></td>
+                     <td><button class="trade-action-btn" onclick="window.openTradeModal('${p.ticker}', 'SELL')">Sell</button></td>
+                 </tr>
+             `;
+@@ -987,180 +1292,28 @@ window.switchTab = (tabId) => {
+ 
+   const target = document.getElementById(tabId + "Tab");
+   if (target) target.classList.remove("hidden");
++
++  // Animate the nav indicator capsule
++  updateNavIndicator();
++
++  // Specific tab initializers
++  if (tabId === "reports") {
++    renderReports();
++  }
++  if (tabId === "compare") {
++    setupCompare();
++  }
+ };
+ 
+ function setupTabs() {
+   document.querySelectorAll(".nav-item").forEach((el) => {
+     el.addEventListener("click", () => switchTab(el.dataset.tab));
+   });
++  // Initialize indicator position
++  setTimeout(updateNavIndicator, 100);
+ }
+ 
+-// Chat
+-function setupChat() {
+-  const input = document.getElementById("chatInput");
+-  const sendBtn = document.getElementById("chatSend");
+-  const msgContainer = document.getElementById("chatMessages");
+-  const attachBtn = document.getElementById("chatAttachBtn");
+-  const fileInput = document.getElementById("chatFileInput");
+-  const previewContainer = document.getElementById("chatAttachmentPreview");
+-
+-  if (!input || !sendBtn || !msgContainer) return;
+-
+-  let attachedFiles = [];
+-
+-  // File selection logic
+-  attachBtn?.addEventListener("click", () => fileInput.click());
+-
+-  fileInput?.addEventListener("change", async (e) => {
+-    const files = Array.from(e.target.files);
+-    for (const file of files) {
+-      const reader = new FileReader();
+-      reader.onload = (event) => {
+-        const fileData = {
+-          name: file.name,
+-          type: file.type,
+-          data: event.target.result, // Base64 for images
+-          id: Date.now() + Math.random(),
+-        };
+-        attachedFiles.push(fileData);
+-        renderPreviews();
+-        sendBtn.classList.add("active");
+-      };
+-      if (file.type.startsWith("image/")) {
+-        reader.readAsDataURL(file);
+-      } else {
+-        reader.readAsText(file.slice(0, 1000)); // Read start of text files
+-      }
+-    }
+-    fileInput.value = ""; // Reset for same file selection
+-  });
+-
+-  function renderPreviews() {
+-    if (!previewContainer) return;
+-    if (attachedFiles.length === 0) {
+-      previewContainer.classList.add("hidden");
+-      return;
+-    }
+-    previewContainer.classList.remove("hidden");
+-    previewContainer.innerHTML = attachedFiles
+-      .map(
+-        (f) => `
+-            <div class="preview-item">
+-                ${f.type.startsWith("image/") ? `<img src="${f.data}">` : `<span class="material-symbols-outlined file-icon">description</span>`}
+-                <div class="remove-btn" onclick="window.removeAttachment(${f.id})">├ù</div>
+-            </div>
+-        `,
+-      )
+-      .join("");
+-  }
+-
+-  window.removeAttachment = (id) => {
+-    attachedFiles = attachedFiles.filter((f) => f.id !== id);
+-    renderPreviews();
+-    if (attachedFiles.length === 0 && input.value.trim() === "")
+-      sendBtn.classList.remove("active");
+-  };
+-
+-  // Auto-resize textarea
+-  input.addEventListener("input", () => {
+-    input.style.height = "auto";
+-    input.style.height = input.scrollHeight + "px";
+-    if (input.value.trim().length > 0 || attachedFiles.length > 0)
+-      sendBtn.classList.add("active");
+-    else sendBtn.classList.remove("active");
+-  });
+-
+-  const sendMessage = async () => {
+-    const text = input.value.trim();
+-    if (!text && attachedFiles.length === 0) return;
+-
+-    const currentAttachments = [...attachedFiles];
+-
+-    // Reset UI
+-    input.value = "";
+-    input.style.height = "auto";
+-    attachedFiles = [];
+-    renderPreviews();
+-    sendBtn.classList.remove("active");
+-
+-    // User Message HTML (showing attachments)
+-    let attachmentsHTML = currentAttachments
+-      .map((f) => {
+-        if (f.type.startsWith("image/"))
+-          return `<img src="${f.data}" style="max-width: 200px; border-radius: 8px; margin-top: 8px; display: block;">`;
+-        return `<div style="margin-top:8px; display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); padding:8px; border-radius:8px; font-size:12px;"><span class="material-symbols-outlined" style="font-size:16px;">description</span> ${f.name}</div>`;
+-      })
+-      .join("");
+-
+-    msgContainer.innerHTML += `
+-            <div class="msg-user-wrap fade-in">
+-                <div class="msg-content-user">
+-                    ${text ? `<div>${text}</div>` : ""}
+-                    ${attachmentsHTML}
+-                </div>
+-            </div>
+-        `;
+-    msgContainer.scrollTop = msgContainer.scrollHeight;
+-
+-    try {
+-      const data = await apiCall("/vibe-trade", {
+-        method: "POST",
+-        body: JSON.stringify({
+-          prompt: text,
+-          attachments: currentAttachments.map((f) => ({
+-            name: f.name,
+-            type: f.type,
+-            data: f.data,
+-          })),
+-        }),
+-      });
+-
+-      // ... (rest of AI rendering logic remains same)
+-      let extraHtml = "";
+-      if (
+-        data.tradeSymbol &&
+-        marketData.some((m) => m.sym === data.tradeSymbol)
+-      ) {
+-        extraHtml = `
+-                <div style="margin-top: 12px; display: flex; gap: 8px;">
+-                    <button style="flex: 1; padding: 10px 14px; border-radius: 10px; border: none; background: rgba(34,197,94,0.15); color: var(--green); font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--green)'; this.style.color='#000';" onmouseout="this.style.background='rgba(34,197,94,0.15)'; this.style.color='var(--green)';" onclick="window.openTradeModal('${data.tradeSymbol}', 'BUY')">Buy ${data.tradeSymbol}</button>
+-                    <button style="flex: 1; padding: 10px 14px; border-radius: 10px; border: none; background: rgba(239,68,68,0.15); color: var(--red); font-weight: 700; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--red)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(239,68,68,0.15)'; this.style.color='var(--red)';" onclick="window.openTradeModal('${data.tradeSymbol}', 'SELL')">Sell ${data.tradeSymbol}</button>
+-                </div>`;
+-      }
+-
+-      msgContainer.innerHTML += `
+-                <div class="msg-ai-wrap fade-in">
+-                    <div class="ai-avatar-sparkle">
+-                        <span class="material-symbols-outlined ai-sparkle-icon">auto_awesome</span>
+-                    </div>
+-                    <div class="msg-content-ai">
+-                        <div>${data.reply}</div>
+-                        ${extraHtml}
+-                    </div>
+-                </div>
+-            `;
+-    } catch (e) {
+-      msgContainer.innerHTML += `
+-                <div class="msg-ai-wrap fade-in">
+-                    <div class="ai-avatar-sparkle" style="border-color:var(--red);">
+-                        <span class="material-symbols-outlined" style="color:var(--red); font-size:18px;">error</span>
+-                    </div>
+-                    <div class="msg-content-ai" style="color:var(--red);">Error: ${e.message}</div>
+-                </div>
+-            `;
+-    }
+-    msgContainer.scrollTop = msgContainer.scrollHeight;
+-  };
+-
+-  sendBtn.addEventListener("click", sendMessage);
+-  input.addEventListener("keydown", (e) => {
+-    if (e.key === "Enter" && !e.shiftKey) {
+-      e.preventDefault();
+-      sendMessage();
+-    }
+-  });
+-}
+-
++// Chat logic extracted to chat.js
+ // Roast
+ function setupRoast() {
+   const btn = document.getElementById("roastBtn");
+@@ -1311,26 +1474,22 @@ async function loadChart(sym, range = "3mo", interval = "1d") {
+         })),
+       );
+ 
+-      // Update price display if we got live meta
+-      if (meta.regularMarketPrice && !meta.mock) {
++      // Update price display with consistent live data
++      const stockForCurrency = marketData.find(
++        (m) => m.sym === currentChartSymbol,
++      );
++      if (stockForCurrency && !meta.mock) {
+         const detailPrc = document.getElementById("detailPrc");
+         const detailChg = document.getElementById("detailChg");
+-        const stockForCurrency = marketData.find(
+-          (m) => m.sym === currentChartSymbol,
+-        );
+-        const cs = stockForCurrency?.intl ? "$" : "Γé╣";
+-        detailPrc.textContent = cs + meta.regularMarketPrice.toFixed(2);
+-
+-        if (meta.previousClose) {
+-          const pctChange =
+-            ((meta.regularMarketPrice - meta.previousClose) /
+-              meta.previousClose) *
+-            100;
+-          detailChg.textContent =
+-            (pctChange >= 0 ? "+" : "") + pctChange.toFixed(2) + "%";
+-          detailChg.className = `tint-${pctChange >= 0 ? "up" : "down"}`;
+-          detailChg.style.color = "";
+-        }
++        const cs = "Γé╣";
++        
++        // Use the live price and daily change from our central marketData store
++        detailPrc.textContent = window.formatPrice(stockForCurrency.price);
++        
++        detailChg.textContent =
++          (stockForCurrency.change >= 0 ? "+" : "") + stockForCurrency.change.toFixed(2) + "%";
++        detailChg.className = `tint-${stockForCurrency.change >= 0 ? "up" : "down"}`;
++        detailChg.style.color = "";
+ 
+         if (liveBadge) liveBadge.style.display = "inline-block";
+       }
+@@ -1381,28 +1540,26 @@ async function loadChart(sym, range = "3mo", interval = "1d") {
+           const meta = response.meta || {};
+ 
+           if (candles.length > 0 && currentChart) {
+-            // Find the series (candles are usually the first series)
+-            const series = currentChart.series && currentChart.series()[0];
++            const series = currentChart.mainSeries;
+             if (series) {
+-              // Update with full data to catch any missing candles
+-              series.setData(
+-                candles.map((c) => ({
+-                  time: c.time,
+-                  open: c.open,
+-                  high: c.high,
+-                  low: c.low,
+-                  close: c.close,
+-                })),
+-              );
++              if (window.currentChartMode === 'line' || window.currentChartMode === 'area') {
++                series.setData(candles.map((c) => ({ time: c.time, value: c.close })));
++              } else {
++                series.setData(candles.map((c) => ({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close })));
++              }
+             }
+ 
+-            // Update price labels
+-            if (meta.regularMarketPrice) {
++            // Update price labels with consistent live data
++            const stockForCurrency = marketData.find((m) => m.sym === sym);
++            if (stockForCurrency) {
+               const detailPrc = document.getElementById("detailPrc");
+               const detailChg = document.getElementById("detailChg");
+-              const stockForCurrency = marketData.find((m) => m.sym === sym);
+-              const cs = stockForCurrency?.intl ? "$" : "Γé╣";
+-              detailPrc.textContent = cs + meta.regularMarketPrice.toFixed(2);
++              const cs = "Γé╣";
++              
++              detailPrc.textContent = window.formatPrice(stockForCurrency.price);
++              detailChg.textContent = (stockForCurrency.change >= 0 ? "+" : "") + stockForCurrency.change.toFixed(2) + "%";
++              detailChg.className = `tint-${stockForCurrency.change >= 0 ? "up" : "down"}`;
++              detailChg.style.color = "";
+ 
+               if (lastUpdatedEl) {
+                 lastUpdatedEl.textContent = `Last updated: ${new Date().toLocaleTimeString("en-IN")}`;
+@@ -1825,7 +1998,7 @@ window.renderOrderBook = (filter = "all") => {
+                 <td><span class="side-text ${trade.type.toLowerCase()}">${trade.type}</span></td>
+                 <td style="font-size: 11px; color: var(--muted); font-weight: 600;">MARKET</td>
+                 <td style="font-family: var(--font-mono); font-weight: 600;">${trade.qty}</td>
+-                <td style="font-family: var(--font-mono); font-weight: 600;">Γé╣${trade.price.toFixed(2)}</td>
++                <td style="font-family: var(--font-mono); font-weight: 600;">${window.formatPrice(trade.price)}</td>
+                 <td><span class="status-badge executed">EXECUTED</span></td>
+             </tr>
+         `;

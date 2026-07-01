@@ -1,0 +1,458 @@
+[
+  {
+    "id": "1",
+    "name": "Demo User",
+    "email": "demo@labh.com",
+    "password": "password",
+    "balance": 100000,
+    "portfolio": [],
+    "level": "Beginner"
+  },
+  {
+    "id": "1778781948706",
+    "name": "ASHIT TIWARY",
+    "email": "demo3@labh.com",
+    "password": "password",
+    "balance": 110725.42149999973,
+    "portfolio": [
+      {
+        "ticker": "INFY",
+        "qty": 8,
+        "avgPrice": 1174.5
+      },
+      {
+        "ticker": "AAPL",
+        "qty": 1,
+        "avgPrice": 25786.47
+      },
+      {
+        "ticker": "TSLA",
+        "qty": 1,
+        "avgPrice": 35571.835
+      },
+      {
+        "ticker": "SBIN",
+        "qty": 10,
+        "avgPrice": 1026.9
+      },
+      {
+        "ticker": "HDFCBANK",
+        "qty": 1,
+        "avgPrice": 797.95
+      }
+    ],
+    "trades": [
+      {
+        "type": "BUY",
+        "ticker": "HDFCBANK",
+        "qty": 1,
+        "price": 769.55,
+        "total": 769.55,
+        "date": "2026-05-14T18:05:55.043Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "AAPL",
+        "qty": 1,
+        "price": 24867.135,
+        "total": 24867.135,
+        "date": "2026-05-14T18:05:58.027Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "TSLA",
+        "qty": 1,
+        "price": 37195.993500000004,
+        "total": 37195.993500000004,
+        "date": "2026-05-14T18:05:59.929Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "GOOGL",
+        "qty": 10,
+        "price": 33431.563,
+        "total": 334315.63,
+        "date": "2026-05-14T18:20:40.863Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "F",
+        "qty": 10,
+        "price": 100295.81625,
+        "total": 1002958.1625000001,
+        "date": "2026-05-14T18:21:18.651Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "HDFCBANK",
+        "qty": 10,
+        "price": 773.05,
+        "total": 7730.5,
+        "date": "2026-05-15T08:49:28.693Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "RELIANCE",
+        "qty": 10,
+        "price": 1336.4,
+        "total": 13364,
+        "date": "2026-05-15T11:22:40.194Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "INFY",
+        "qty": 10,
+        "price": 1119,
+        "total": 11190,
+        "date": "2026-05-15T11:23:37.341Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "TCS",
+        "qty": 10,
+        "price": 2264,
+        "total": 22640,
+        "date": "2026-05-15T11:23:41.735Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "GOOGL",
+        "qty": 10,
+        "price": 33489.345,
+        "total": 334893.45,
+        "date": "2026-05-15T11:24:24.176Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "F",
+        "qty": 10,
+        "price": 100958.18,
+        "total": 1009581.7999999999,
+        "date": "2026-05-15T11:27:17.366Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "HDFCBANK",
+        "qty": 10,
+        "price": 767.5,
+        "total": 7675,
+        "date": "2026-05-15T12:02:28.549Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "AAPL",
+        "qty": 1,
+        "price": 24900.535,
+        "total": 24900.535,
+        "date": "2026-05-15T12:16:41.081Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "INFY",
+        "qty": 10,
+        "price": 1193.7,
+        "total": 11937,
+        "date": "2026-05-20T17:09:12.549Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "RELIANCE",
+        "qty": 10,
+        "price": 1359.7,
+        "total": 13597,
+        "date": "2026-05-20T17:09:17.471Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "TCS",
+        "qty": 10,
+        "price": 2327.4,
+        "total": 23274,
+        "date": "2026-05-20T17:09:20.773Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "HDFCBANK",
+        "qty": 21,
+        "price": 759.5,
+        "total": 15949.5,
+        "date": "2026-05-20T18:54:38.999Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "TSLA",
+        "qty": 1,
+        "price": 34567.33,
+        "total": 34567.33,
+        "date": "2026-05-20T18:54:41.293Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "TATAMOTORS",
+        "qty": 10,
+        "price": 950.25,
+        "total": 9502.5,
+        "date": "2026-05-21T17:13:33.147Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "AAPL",
+        "qty": 10,
+        "price": 25371.475000000002,
+        "total": 253714.75000000003,
+        "date": "2026-05-21T17:13:38.275Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "GOOGL",
+        "qty": 10,
+        "price": 32443.925,
+        "total": 324439.25,
+        "date": "2026-05-21T17:13:42.612Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "NVDA",
+        "qty": 7,
+        "price": 18406.74,
+        "total": 128847.18000000001,
+        "date": "2026-05-21T17:13:48.410Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "TSLA",
+        "qty": 15,
+        "price": 35012.385,
+        "total": 525185.775,
+        "date": "2026-05-21T17:13:53.050Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "TSLA",
+        "qty": 15,
+        "price": 35187.735,
+        "total": 527816.025,
+        "date": "2026-05-21T17:36:35.703Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "GOOGL",
+        "qty": 10,
+        "price": 32602.575,
+        "total": 326025.75,
+        "date": "2026-05-21T17:36:39.388Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "NVDA",
+        "qty": 7,
+        "price": 18515.29,
+        "total": 129607.03,
+        "date": "2026-05-21T17:36:43.786Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "AAPL",
+        "qty": 10,
+        "price": 25430.3425,
+        "total": 254303.425,
+        "date": "2026-05-21T17:36:46.071Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "PFE",
+        "qty": 10,
+        "price": 2156.3875,
+        "total": 21563.875,
+        "date": "2026-05-21T18:11:06.023Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "META",
+        "qty": 10,
+        "price": 50805.575000000004,
+        "total": 508055.75000000006,
+        "date": "2026-05-21T18:11:11.213Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "PFE",
+        "qty": 10,
+        "price": 2166.825,
+        "total": 21668.25,
+        "date": "2026-05-22T11:12:14.258Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "F",
+        "qty": 10,
+        "price": 95310.6575,
+        "total": 953106.575,
+        "date": "2026-05-22T11:19:41.508Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "META",
+        "qty": 10,
+        "price": 50898.5105,
+        "total": 508985.105,
+        "date": "2026-05-22T18:06:07.680Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "F",
+        "qty": 10,
+        "price": 103154.43875,
+        "total": 1031544.3875,
+        "date": "2026-05-22T18:13:41.324Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "JPM",
+        "qty": 1,
+        "price": 25642.015,
+        "total": 25642.015,
+        "date": "2026-05-22T18:24:37.901Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "JPM",
+        "qty": 3,
+        "price": 25643.685,
+        "total": 76931.05500000001,
+        "date": "2026-05-22T18:24:51.681Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "JPM",
+        "qty": 4,
+        "price": 25610.285,
+        "total": 102441.14,
+        "date": "2026-05-22T19:31:33.320Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "TATAMOTORS",
+        "qty": 10,
+        "price": 950.25,
+        "total": 9502.5,
+        "date": "2026-05-23T08:43:39.774Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "INFY",
+        "qty": 10,
+        "price": 1174.5,
+        "total": 11745,
+        "date": "2026-05-23T08:43:47.717Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "AAPL",
+        "qty": 1,
+        "price": 25786.47,
+        "total": 25786.47,
+        "date": "2026-05-23T08:43:55.501Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "TSLA",
+        "qty": 1,
+        "price": 35571.835,
+        "total": 35571.835,
+        "date": "2026-05-23T08:44:00.213Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "JPM",
+        "qty": 1,
+        "price": 25582.73,
+        "total": 25582.73,
+        "date": "2026-05-23T08:44:03.925Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "JPM",
+        "qty": 1,
+        "price": 27475.675,
+        "total": 27475.675,
+        "date": "2026-06-28T07:27:53.836Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "INFY",
+        "qty": 2,
+        "price": 1042.9,
+        "total": 2085.8,
+        "date": "2026-06-28T07:28:12.026Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "HDFCBANK",
+        "qty": 2,
+        "price": 796,
+        "total": 1592,
+        "date": "2026-06-28T07:54:45.447Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "HDFCBANK",
+        "qty": 1,
+        "price": 796,
+        "total": 796,
+        "date": "2026-06-28T07:56:49.011Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "HDFCBANK",
+        "qty": 1,
+        "price": 796,
+        "total": 796,
+        "date": "2026-06-28T07:58:19.731Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "HDFCBANK",
+        "qty": 1,
+        "price": 796,
+        "total": 796,
+        "date": "2026-06-28T08:03:11.670Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "HDFCBANK",
+        "qty": 1,
+        "price": 796,
+        "total": 796,
+        "date": "2026-06-28T08:03:19.827Z"
+      },
+      {
+        "type": "SELL",
+        "ticker": "HDFCBANK",
+        "qty": 6,
+        "price": 798.9,
+        "total": 4793.4,
+        "date": "2026-06-29T19:22:28.783Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "SBIN",
+        "qty": 10,
+        "price": 1026.9,
+        "total": 10269,
+        "date": "2026-06-30T15:48:36.553Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "HDFCBANK",
+        "qty": 1,
+        "price": 797.95,
+        "total": 797.95,
+        "date": "2026-06-30T19:24:59.578Z"
+      }
+    ],
+    "level": "Advanced",
+    "avatar": "https://i.pinimg.com/1200x/df/d5/b1/dfd5b165b8ebb7b21f7b179a619543ba.jpg",
+    "phone": "9370076481"
+  }
+]

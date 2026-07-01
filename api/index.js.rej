@@ -1,0 +1,44 @@
+--- api/index.js
++++ api/index.js
+@@ -167,7 +167,13 @@ app.get("/api/globe-threat-zones", async (req, res) => {
+     res.json(payload);
+   } catch (e) {
+     console.error("[globe-threat-zones]", e);
+-    res.status(500).json({ error: "Failed to load globe threat zones" });
++    res.json({
++      zones: [],
++      updatedAt: new Date().toISOString(),
++      aiPowered: false,
++      quotesSource: "fallback",
++      warning: "Live globe threat zones are temporarily unavailable.",
++    });
+   }
+ });
+ 
+@@ -177,7 +183,11 @@ app.get("/api/global-market-pulse", async (req, res) => {
+     res.json(payload);
+   } catch (e) {
+     console.error("[global-market-pulse]", e);
+-    res.status(500).json({ error: "Failed to load global market pulse" });
++    res.json({
++      timestamp: new Date().toISOString(),
++      pulse: [],
++      warning: "Live global market pulse is temporarily unavailable.",
++    });
+   }
+ });
+ 
+@@ -194,7 +204,12 @@ app.get("/api/country-impact/:countryCode", async (req, res) => {
+     res.json(enriched);
+   } catch (e) {
+     console.error("[country-impact]", e);
+-    res.status(500).json({ error: "Failed to load live market data" });
++    res.json({
++      ...payload,
++      liveQuotesAsOf: new Date().toISOString(),
++      financialDataSource: "static_fallback",
++      warning: "Live market data is temporarily unavailable.",
++    });
+   }
+ });
+ 
