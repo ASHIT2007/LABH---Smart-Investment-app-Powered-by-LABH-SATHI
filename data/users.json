@@ -4,9 +4,38 @@
     "name": "Demo User",
     "email": "demo@labh.com",
     "password": "password",
-    "balance": 100000,
-    "portfolio": [],
-    "level": "Beginner"
+    "balance": 1367.7599999999948,
+    "portfolio": [
+      {
+        "ticker": "AAPL",
+        "qty": 4,
+        "avgPrice": 24161.56
+      },
+      {
+        "ticker": "INFY",
+        "qty": 2,
+        "avgPrice": 993
+      }
+    ],
+    "level": "Beginner",
+    "trades": [
+      {
+        "type": "BUY",
+        "ticker": "AAPL",
+        "qty": 4,
+        "price": 24161.56,
+        "total": 96646.24,
+        "date": "2026-07-01T07:28:27.338Z"
+      },
+      {
+        "type": "BUY",
+        "ticker": "INFY",
+        "qty": 2,
+        "price": 993,
+        "total": 1986,
+        "date": "2026-07-01T07:28:53.797Z"
+      }
+    ]
   },
   {
     "id": "1778781948706",

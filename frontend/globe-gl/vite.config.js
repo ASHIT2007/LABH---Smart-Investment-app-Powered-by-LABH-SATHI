@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/globe-gl/dist/', // Important so Express serves assets correctly
+  base: './', // Use relative paths for assets
 })

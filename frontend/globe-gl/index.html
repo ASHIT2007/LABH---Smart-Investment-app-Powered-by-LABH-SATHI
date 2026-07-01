@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>World Finance & Threat Globe Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link href="../css/style.css" rel="stylesheet" />
     <style>
       /* -------------------------------------------------------------
        Base page layout
@@ -14,7 +16,7 @@
         height: 100%;
         margin: 0;
         overflow: hidden;
-        background: #050a14; /* Night sky; ocean is on the globe */
+        background: #000000; /* Super black space */
         font-family:
           Inter,
           ui-sans-serif,
@@ -45,9 +47,9 @@
         font-size: 12px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: #bdc8ff;
-        background: rgba(20, 26, 42, 0.42);
-        border: 1px solid rgba(130, 150, 255, 0.18);
+        color: #e0e0e0;
+        background: rgba(10, 10, 10, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
         max-width: min(420px, 92vw);
@@ -60,120 +62,198 @@
         letter-spacing: 0.04em;
         text-transform: none;
         line-height: 1.35;
-        color: #9aaee0;
+        color: #cccccc;
       }
 
       /* -------------------------------------------------------------
-       Pulsating threat markers (DOM elements mounted on globe points)
+       THREAT MARKERS — Pulsating danger indicators
        ------------------------------------------------------------- */
       .threat-marker {
         position: relative;
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
         border-radius: 999px;
         transform: translate(-50%, -50%);
         cursor: pointer;
         pointer-events: auto;
         z-index: 5;
-        /* Core glow color defaults (red/orange themes below override as needed) */
         --core: #ff4d4d;
         --ring: rgba(255, 95, 95, 0.55);
         --soft: rgba(255, 95, 95, 0.18);
         background: radial-gradient(
-          circle at 30% 30%,
+          circle at 35% 35%,
           #fff 0%,
           var(--core) 45%,
           #c61b1b 100%
         );
         box-shadow:
-          0 0 10px var(--core),
-          0 0 24px var(--ring),
-          inset 0 0 5px rgba(255, 255, 255, 0.45);
-        animation: pulse-core 2s ease-out infinite;
+          0 0 8px var(--core),
+          0 0 20px var(--ring),
+          inset 0 0 4px rgba(255, 255, 255, 0.4);
+        animation: pulse-core 2.4s ease-in-out infinite;
       }
 
-      .threat-marker::before,
-      .threat-marker::after {
+      .threat-marker::before {
         content: "";
         position: absolute;
-        inset: -8px;
+        inset: -6px;
         border-radius: inherit;
-        border: 2px solid var(--ring);
+        border: 1.5px solid var(--ring);
         opacity: 0;
-        animation: pulse-ring 2.2s ease-out infinite;
-      }
-
-      .threat-marker::after {
-        animation-delay: 1.1s;
+        animation: pulse-ring 2.6s ease-out infinite;
       }
 
       .threat-marker--orange {
         --core: #ff9d2e;
         --ring: rgba(255, 170, 70, 0.55);
         --soft: rgba(255, 170, 70, 0.18);
-        background: radial-gradient(
-          circle at 30% 30%,
-          #fff7ea 0%,
-          var(--core) 50%,
-          #d56700 100%
-        );
-      }
-
-      .threat-marker--green {
-        --core: #4dff88;
-        --ring: rgba(77, 255, 136, 0.55);
-        --soft: rgba(77, 255, 136, 0.18);
-        background: radial-gradient(
-          circle at 30% 30%,
-          #f0fff4 0%,
-          var(--core) 50%,
-          #00d54a 100%
-        );
-      }
-
-      .threat-marker--yellow {
-        --core: #f5e042;
-        --ring: rgba(245, 224, 66, 0.55);
-        --soft: rgba(245, 224, 66, 0.18);
-        background: radial-gradient(
-          circle at 30% 30%,
-          #fffdeb 0%,
-          var(--core) 50%,
-          #d5c300 100%
-        );
+        background: radial-gradient(circle at 35% 35%, #fff7ea 0%, var(--core) 50%, #d56700 100%);
       }
 
       .threat-marker:hover {
-        transform: translate(-50%, -50%) scale(1.08);
-        filter: brightness(1.08);
+        transform: translate(-50%, -50%) scale(1.15);
+        filter: brightness(1.1);
+      }
+
+      /* -------------------------------------------------------------
+       PULSE MARKERS — Clean market health indicators
+       ------------------------------------------------------------- */
+      .pulse-marker {
+        position: relative;
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+        pointer-events: auto;
+        z-index: 4;
+        --core: #fbbf24;
+        --ring: rgba(251, 191, 36, 0.4);
+        background: radial-gradient(circle at 40% 40%, #fff 0%, var(--core) 60%, #b78a00 100%);
+        box-shadow: 0 0 6px var(--core), 0 0 14px var(--ring);
+        border: 1px solid rgba(255,255,255,0.15);
+        animation: pulse-glow 3s ease-in-out infinite;
+      }
+
+      .pulse-marker::before {
+        content: "";
+        position: absolute;
+        inset: -4px;
+        border-radius: inherit;
+        border: 1px solid var(--ring);
+        opacity: 0;
+        animation: pulse-ring-soft 3s ease-out infinite;
+      }
+
+      .pulse-marker--up {
+        --core: #34d399;
+        --ring: rgba(52, 211, 153, 0.4);
+        background: radial-gradient(circle at 40% 40%, #ecfdf5 0%, var(--core) 60%, #059669 100%);
+      }
+
+      .pulse-marker--down {
+        --core: #f87171;
+        --ring: rgba(248, 113, 113, 0.4);
+        background: radial-gradient(circle at 40% 40%, #fff1f2 0%, var(--core) 60%, #dc2626 100%);
+      }
+
+      .pulse-marker--flat {
+        --core: #94a3b8;
+        --ring: rgba(148, 163, 184, 0.3);
+        background: radial-gradient(circle at 40% 40%, #f1f5f9 0%, var(--core) 60%, #64748b 100%);
+      }
+
+      .pulse-marker:hover {
+        transform: translate(-50%, -50%) scale(1.3);
+        filter: brightness(1.15);
       }
 
       @keyframes pulse-core {
-        0%,
-        100% {
-          box-shadow:
-            0 0 10px var(--core),
-            0 0 24px var(--ring),
-            inset 0 0 5px rgba(255, 255, 255, 0.45);
+        0%, 100% {
+          box-shadow: 0 0 8px var(--core), 0 0 20px var(--ring), inset 0 0 4px rgba(255,255,255,0.4);
         }
         50% {
-          box-shadow:
-            0 0 14px var(--core),
-            0 0 30px var(--ring),
-            0 0 44px var(--soft),
-            inset 0 0 5px rgba(255, 255, 255, 0.55);
+          box-shadow: 0 0 12px var(--core), 0 0 28px var(--ring), 0 0 40px var(--soft), inset 0 0 5px rgba(255,255,255,0.5);
+        }
+      }
+
+      @keyframes pulse-glow {
+        0%, 100% {
+          box-shadow: 0 0 6px var(--core), 0 0 14px var(--ring);
+        }
+        50% {
+          box-shadow: 0 0 10px var(--core), 0 0 22px var(--ring);
         }
       }
 
       @keyframes pulse-ring {
-        0% {
-          transform: scale(0.5);
-          opacity: 0.75;
-        }
-        100% {
-          transform: scale(2.15);
-          opacity: 0;
-        }
+        0% { transform: scale(0.6); opacity: 0.7; }
+        100% { transform: scale(2); opacity: 0; }
+      }
+
+      @keyframes pulse-ring-soft {
+        0% { transform: scale(0.8); opacity: 0.5; }
+        100% { transform: scale(1.8); opacity: 0; }
+      }
+
+      /* -------------------------------------------------------------
+       ENERGY PLANT MARKERS — Nuclear/Power facilities
+       ------------------------------------------------------------- */
+      .energy-marker {
+        position: relative;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+        pointer-events: auto;
+        z-index: 3;
+        --core: #f59e0b;
+        --ring: rgba(245, 158, 11, 0.35);
+        background: radial-gradient(circle at 40% 40%, #fffbeb 0%, var(--core) 55%, #b45309 100%);
+        box-shadow: 0 0 5px var(--core), 0 0 12px var(--ring);
+        border: 1px solid rgba(255,255,255,0.1);
+        animation: energy-breathe 4s ease-in-out infinite;
+      }
+
+      .energy-marker:hover {
+        transform: translate(-50%, -50%) scale(1.5);
+        filter: brightness(1.2);
+      }
+
+      @keyframes energy-breathe {
+        0%, 100% { box-shadow: 0 0 4px var(--core), 0 0 10px var(--ring); }
+        50% { box-shadow: 0 0 7px var(--core), 0 0 16px var(--ring); }
+      }
+
+      /* -------------------------------------------------------------
+       STOCK EXCHANGE MARKERS — Financial hubs
+       ------------------------------------------------------------- */
+      .exchange-marker {
+        position: relative;
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        transform: translate(-50%, -50%) rotate(45deg);
+        cursor: pointer;
+        pointer-events: auto;
+        z-index: 4;
+        --core: #60a5fa;
+        --ring: rgba(96, 165, 250, 0.35);
+        background: radial-gradient(circle at 40% 40%, #eff6ff 0%, var(--core) 55%, #1d4ed8 100%);
+        box-shadow: 0 0 5px var(--core), 0 0 12px var(--ring);
+        border: 1px solid rgba(255,255,255,0.15);
+        animation: exchange-pulse 3.5s ease-in-out infinite;
+      }
+
+      .exchange-marker:hover {
+        transform: translate(-50%, -50%) rotate(45deg) scale(1.4);
+        filter: brightness(1.2);
+      }
+
+      @keyframes exchange-pulse {
+        0%, 100% { box-shadow: 0 0 4px var(--core), 0 0 10px var(--ring); }
+        50% { box-shadow: 0 0 8px var(--core), 0 0 18px var(--ring); }
       }
 
       /* -------------------------------------------------------------
@@ -291,11 +371,11 @@
         width: 44px;
         height: 44px;
         border-radius: 12px;
-        background: rgba(20, 26, 42, 0.6);
-        border: 1px solid rgba(130, 150, 255, 0.25);
+        background: rgba(15, 15, 15, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
-        color: #cbd6ff;
+        color: #e0e0e0;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -306,13 +386,13 @@
       }
 
       .exit-button:hover {
-        background: rgba(130, 150, 255, 0.2);
-        border-color: rgba(130, 150, 255, 0.5);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
         color: #ffffff;
         transform: translateY(-2px);
         box-shadow:
-          0 6px 20px rgba(0, 0, 0, 0.4),
-          0 0 15px rgba(130, 150, 255, 0.2);
+          0 6px 20px rgba(0, 0, 0, 0.6),
+          0 0 15px rgba(255, 255, 255, 0.1);
       }
 
       .exit-button:active {
@@ -328,14 +408,105 @@
       .exit-button:hover svg {
         transform: translateX(-3px);
       }
+
+      /* Legend Panel */
+      .globe-legend {
+        position: fixed;
+        bottom: 18px;
+        left: 18px;
+        z-index: 30;
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: rgba(10, 10, 10, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        max-width: 210px;
+      }
+      .globe-legend h4 {
+        margin: 0 0 8px;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #aaaaaa;
+        font-weight: 600;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 3px 0;
+        font-size: 11px;
+        color: #cccccc;
+      }
+      .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        box-shadow: 0 0 6px var(--dot-color);
+      }
+      .zone-count {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        padding: 1px 6px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #eeeeee;
+        margin-left: 6px;
+      }
+      .hud-model {
+        margin-top: 4px;
+        font-size: 9px;
+        color: #888888;
+      }
+
+      /* Loader */
+      #globe-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: #000000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.8s ease, visibility 0.8s;
+      }
+      .globe-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: globe-spin 1s linear infinite;
+        margin-bottom: 16px;
+      }
+      .globe-loader-text {
+        color: #aaaaaa;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      @keyframes globe-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
-  <body>
+  <body data-theme="dark">
+    <div id="globe-loader">
+      <div class="globe-spinner"></div>
+      <div class="globe-loader-text">Initializing Globe...</div>
+    </div>
     <div class="hud">
-      World Finance & Threat Globe
+      World Finance & Threat Globe <span id="zone-count-badge" class="zone-count"></span>
       <div id="globe-live-status" class="hud-sub">
         Loading live Yahoo quotes + Groq headlines…
       </div>
+      <div id="globe-model-info" class="hud-model"></div>
     </div>
 
     <a href="../index.html" class="exit-button" title="Back to Dashboard">
@@ -351,12 +522,111 @@
         <polyline points="12 19 5 12 12 5"></polyline>
       </svg>
     </a>
+    <div class="globe-legend" id="globe-legend"></div>
     <div id="globe-viz"></div>
     <div id="threat-tooltip" aria-hidden="true"></div>
 
-    <!-- Globe.gl (UMD) and dependency graph from CDNs -->
-    <script src="https://unpkg.com/three"></script>
-    <script src="https://unpkg.com/globe.gl"></script>
+    <!-- Floating AI Widget -->
+    <div id="aiWidgetBubble" class="ai-bubble card-hover" style="z-index: 9999;"></div>
+    <div id="aiWidgetPanel" class="ai-panel hidden">
+        <div class="ai-panel-header">
+            <h3 style="display:flex; align-items:center; gap:10px; font-family: var(--font-head); font-weight: 700; font-size: 16px;">
+                <div class="ai-logo-container">
+                    <img src="../img/ai_logo.jpg" class="ai-logo-img">
+                </div>
+                Labh Sathi
+            </h3>
+            <div style="display:flex; gap:8px; align-items:center;">
+            <div class="custom-model-dropdown" id="modelDropdownGlobe">
+                <div class="model-dropdown-trigger" onclick="document.getElementById('modelMenuGlobe').classList.toggle('hidden')">
+                    <span id="currentModelNameGlobe">Auto (Recommended)</span>
+                    <span class="material-symbols-outlined dropdown-chevron">expand_more</span>
+                </div>
+                <div class="model-dropdown-menu hidden" id="modelMenuGlobe">
+                    <div class="model-item" onclick="selectModel('auto', 'Auto (Recommended)', 'Globe')">
+                        <div class="model-info">
+                            <span class="model-name">Auto (Recommended)</span>
+                            <span class="model-desc">Smart fallback & routing</span>
+                        </div>
+                        <span class="model-badge smart-badge">Auto</span>
+                    </div>
+                    <div class="model-item" onclick="selectModel('llama-3.1-8b-instant', 'Llama 3.1 8B', 'Globe')">
+                        <div class="model-info">
+                            <span class="model-name">Llama 3.1 8B</span>
+                            <span class="model-desc">Fastest answers</span>
+                        </div>
+                        <span class="model-badge">quick</span>
+                    </div>
+                    <div class="model-item" onclick="selectModel('llama-3.3-70b-versatile', 'Llama 3.3 70B', 'Globe')">
+                        <div class="model-info">
+                            <span class="model-name">Llama 3.3 70B</span>
+                            <span class="model-desc">Advanced reasoning</span>
+                        </div>
+                        <span class="model-badge smart-badge">Smart</span>
+                    </div>
+                    <div class="model-item" onclick="selectModel('nvidia/nemotron-3-ultra-550b-a55b', 'Nemotron 3 Ultra', 'Globe')">
+                        <div class="model-info">
+                            <span class="model-name">Nemotron 3 Ultra</span>
+                            <span class="model-desc">Nvidia 550B (API)</span>
+                        </div>
+                        <span class="model-badge" style="background: rgba(118, 185, 0, 0.2); color: #76B900;">Nvidia</span>
+                    </div>
+
+                </div>
+            </div>
+                <button class="panel-icon-btn" onclick="document.getElementById('aiWidgetPanel').classList.toggle('ai-panel-fullscreen'); const i = this.querySelector('span'); i.textContent = i.textContent === 'fullscreen' ? 'fullscreen_exit' : 'fullscreen';"><span class="material-symbols-outlined">fullscreen</span></button>
+                <button class="panel-icon-btn" onclick="document.getElementById('aiWidgetPanel').classList.add('hidden')"><span class="material-symbols-outlined">close</span></button>
+            </div>
+        </div>
+        
+        <div class="chat-container">
+            <div id="chatMessages" class="chat-history-view">
+                <div class="msg-ai-wrap">
+                    <div class="msg-content-ai" style="padding-top: 10px;">
+                        <h3 style="margin-bottom: 8px; font-weight: 500; font-size: 16px;">Hello. I'm Labh Sathi.</h3>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Welcome to SimulaEarth! Click on any threat or market pulse on the globe, and I will analyze it for you.</p>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="chip-btn" onclick="document.getElementById('chatInput').value='What are the biggest current geopolitical threats?'; document.getElementById('chatSend').click();">Global threats</button>
+                            <button class="chip-btn" onclick="document.getElementById('chatInput').value='How are Asian markets performing today?'; document.getElementById('chatSend').click();">Asian markets</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-pill-area">
+                <div id="chatAttachmentPreview" class="chat-attachment-preview hidden"></div>
+                <div class="chat-input-pill-container">
+                    <button id="chatAttachBtn" class="attach-action-btn" type="button" title="Attach file">
+                        <span class="material-symbols-outlined">add_circle</span>
+                    </button>
+                    <input type="file" id="chatFileInput" class="hidden" multiple accept="image/*,video/*,application/pdf,.csv,.xlsx">
+                    <textarea id="chatInput" placeholder="Ask Labh Sathi or analyze chart..." rows="1" autocomplete="off"></textarea>
+                    <button id="chatSend" class="send-action-btn">
+                        <span class="material-symbols-outlined">arrow_upward</span>
+                    </button>
+                </div>
+                <div class="chat-input-footer">
+                    Labh Sathi can make mistakes. Verify financial info.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Init Chat -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script type="module">
+      import { setupChat } from "../js/chat.js";
+      document.addEventListener("DOMContentLoaded", () => {
+        setupChat();
+        document.getElementById("aiWidgetBubble").addEventListener("click", () => {
+          document.getElementById("aiWidgetPanel").classList.toggle("hidden");
+        });
+      });
+    </script>
+
+    <!-- CesiumJS -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.118/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.118/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <!-- Turf: centroids for country name labels (Natural Earth polygons are MultiPolygon-safe) -->
     <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
 
@@ -369,28 +639,95 @@
        */
 
       let threatZones = [];
+      let riskArcs = [];
       let marketPulse = [];
-      let countryCentroids = {};
-      const FALLBACK_COUNTRY_CENTROIDS = {
-        US: { lat: 39.8, lng: -98.6 },
-        CA: { lat: 56.1, lng: -106.3 },
-        MX: { lat: 23.6, lng: -102.5 },
-        GB: { lat: 55.4, lng: -3.4 },
-        DE: { lat: 51.2, lng: 10.4 },
-        FR: { lat: 46.2, lng: 2.2 },
-        IT: { lat: 41.9, lng: 12.6 },
-        IN: { lat: 20.6, lng: 78.9 },
-        CN: { lat: 35.9, lng: 104.2 },
-        JP: { lat: 36.2, lng: 138.3 },
-        KR: { lat: 35.9, lng: 127.8 },
-        AU: { lat: -25.3, lng: 133.8 },
-        BR: { lat: -14.2, lng: -51.9 },
-        ZA: { lat: -30.6, lng: 22.9 },
+      // Hardcoded accurate country centroids (capital-city-biased)
+      let countryCentroids = {
+        US: { lat: 38.9, lng: -77.0 }, CA: { lat: 45.4, lng: -75.7 },
+        MX: { lat: 19.4, lng: -99.1 }, GB: { lat: 51.5, lng: -0.1 },
+        DE: { lat: 52.5, lng: 13.4 },  FR: { lat: 48.9, lng: 2.3 },
+        IT: { lat: 41.9, lng: 12.5 },  CH: { lat: 46.9, lng: 7.4 },
+        NL: { lat: 52.4, lng: 4.9 },   ES: { lat: 40.4, lng: -3.7 },
+        SE: { lat: 59.3, lng: 18.1 },  NO: { lat: 59.9, lng: 10.7 },
+        IN: { lat: 28.6, lng: 77.2 },  CN: { lat: 39.9, lng: 116.4 },
+        JP: { lat: 35.7, lng: 139.7 }, KR: { lat: 37.6, lng: 127.0 },
+        HK: { lat: 22.3, lng: 114.2 }, SG: { lat: 1.3, lng: 103.8 },
+        TW: { lat: 25.0, lng: 121.5 }, TH: { lat: 13.8, lng: 100.5 },
+        ID: { lat: -6.2, lng: 106.8 }, AU: { lat: -33.9, lng: 151.2 },
+        NZ: { lat: -41.3, lng: 174.8 }, SA: { lat: 24.7, lng: 46.7 },
+        AE: { lat: 24.5, lng: 54.7 },  IL: { lat: 32.1, lng: 34.8 },
+        TR: { lat: 41.0, lng: 29.0 },  BR: { lat: -15.8, lng: -47.9 },
+        CL: { lat: -33.4, lng: -70.6 }, AR: { lat: -34.6, lng: -58.4 },
+        ZA: { lat: -25.7, lng: 28.2 }, NG: { lat: 6.5, lng: 3.4 },
+        EG: { lat: 30.0, lng: 31.2 }
       };
       let globe = null;
       let controls = null;
       let isAutoRotateEnabled = true;
+      let autoRotateTimeout = null;
       let aiPoweredGlobal = false;
+
+      // ─── STOCK EXCHANGES (verified GPS coordinates) ───
+      const STOCK_EXCHANGES = [
+        { name: "New York Stock Exchange", abbr: "NYSE", lat: 40.7069, lng: -74.0113, city: "New York" },
+        { name: "NASDAQ", abbr: "NASDAQ", lat: 40.7569, lng: -73.9860, city: "New York" },
+        { name: "London Stock Exchange", abbr: "LSE", lat: 51.5155, lng: -0.0922, city: "London" },
+        { name: "Tokyo Stock Exchange", abbr: "TSE", lat: 35.6815, lng: 139.7740, city: "Tokyo" },
+        { name: "Shanghai Stock Exchange", abbr: "SSE", lat: 31.2333, lng: 121.4803, city: "Shanghai" },
+        { name: "Hong Kong Stock Exchange", abbr: "HKEX", lat: 22.2840, lng: 114.1588, city: "Hong Kong" },
+        { name: "Bombay Stock Exchange", abbr: "BSE", lat: 18.9285, lng: 72.8333, city: "Mumbai" },
+        { name: "National Stock Exchange", abbr: "NSE", lat: 19.0553, lng: 72.8614, city: "Mumbai" },
+        { name: "Euronext Paris", abbr: "ENX", lat: 48.8698, lng: 2.3414, city: "Paris" },
+        { name: "Deutsche Börse", abbr: "XETRA", lat: 50.1109, lng: 8.6821, city: "Frankfurt" },
+        { name: "Toronto Stock Exchange", abbr: "TSX", lat: 43.6490, lng: -79.3806, city: "Toronto" },
+        { name: "Australian Securities Exchange", abbr: "ASX", lat: -33.8688, lng: 151.2093, city: "Sydney" },
+        { name: "Korea Exchange", abbr: "KRX", lat: 35.1028, lng: 129.0335, city: "Busan" },
+        { name: "SIX Swiss Exchange", abbr: "SIX", lat: 47.3769, lng: 8.5417, city: "Zurich" },
+        { name: "Singapore Exchange", abbr: "SGX", lat: 1.2796, lng: 103.8543, city: "Singapore" },
+        { name: "Taiwan Stock Exchange", abbr: "TWSE", lat: 25.0380, lng: 121.5637, city: "Taipei" },
+        { name: "Johannesburg Stock Exchange", abbr: "JSE", lat: -26.2041, lng: 28.0473, city: "Johannesburg" },
+        { name: "B3 (Brasil Bolsa Balcão)", abbr: "B3", lat: -23.5489, lng: -46.6388, city: "São Paulo" },
+        { name: "Saudi Exchange (Tadawul)", abbr: "TADAWUL", lat: 24.7136, lng: 46.6753, city: "Riyadh" },
+        { name: "Borsa Istanbul", abbr: "BIST", lat: 41.1057, lng: 29.0260, city: "Istanbul" },
+      ];
+
+      // ─── ENERGY / PRODUCTION PLANTS (verified GPS coordinates) ───
+      const ENERGY_PLANTS = [
+        // Nuclear Power Plants
+        { name: "Palo Verde Nuclear Plant", type: "Nuclear", lat: 33.3886, lng: -112.8615, country: "USA", capacity: "3,937 MW" },
+        { name: "Bruce Nuclear Station", type: "Nuclear", lat: 44.3254, lng: -81.5990, country: "Canada", capacity: "6,384 MW" },
+        { name: "Hinkley Point C", type: "Nuclear", lat: 51.2080, lng: -3.1300, country: "UK", capacity: "3,260 MW" },
+        { name: "Flamanville Nuclear Plant", type: "Nuclear", lat: 49.5374, lng: -1.8814, country: "France", capacity: "2,660 MW" },
+        { name: "Kashiwazaki-Kariwa", type: "Nuclear", lat: 37.4285, lng: 138.5981, country: "Japan", capacity: "7,965 MW" },
+        { name: "Taishan Nuclear Plant", type: "Nuclear", lat: 21.9130, lng: 112.9820, country: "China", capacity: "3,520 MW" },
+        { name: "Barakah Nuclear Plant", type: "Nuclear", lat: 23.9600, lng: 52.2640, country: "UAE", capacity: "5,600 MW" },
+        { name: "Kudankulam Nuclear Plant", type: "Nuclear", lat: 8.1680, lng: 77.7110, country: "India", capacity: "2,000 MW" },
+        { name: "Zaporizhzhia Nuclear Plant", type: "Nuclear", lat: 47.5070, lng: 34.5850, country: "Ukraine", capacity: "5,700 MW" },
+        { name: "Olkiluoto Nuclear Plant", type: "Nuclear", lat: 61.2354, lng: 21.4475, country: "Finland", capacity: "2,860 MW" },
+        { name: "Vogtle Nuclear Plant", type: "Nuclear", lat: 33.1419, lng: -81.7612, country: "USA", capacity: "4,540 MW" },
+        { name: "Kori Nuclear Plant", type: "Nuclear", lat: 35.3194, lng: 129.2950, country: "South Korea", capacity: "5,137 MW" },
+        // Major Oil Refineries
+        { name: "Jamnagar Refinery", type: "Oil Refinery", lat: 22.4707, lng: 69.0730, country: "India", capacity: "1.24M bpd" },
+        { name: "Ruwais Refinery", type: "Oil Refinery", lat: 24.1114, lng: 52.7286, country: "UAE", capacity: "837K bpd" },
+        { name: "Jurong Island Refinery", type: "Oil Refinery", lat: 1.2660, lng: 103.7100, country: "Singapore", capacity: "592K bpd" },
+        { name: "Port Arthur Refinery", type: "Oil Refinery", lat: 29.8900, lng: -93.9300, country: "USA", capacity: "636K bpd" },
+        // Major Renewable / Hydro
+        { name: "Three Gorges Dam", type: "Hydroelectric", lat: 30.8237, lng: 111.0037, country: "China", capacity: "22,500 MW" },
+        { name: "Itaipu Dam", type: "Hydroelectric", lat: -25.4085, lng: -54.5887, country: "Brazil/Paraguay", capacity: "14,000 MW" },
+        { name: "Bhadla Solar Park", type: "Solar", lat: 27.5393, lng: 71.9100, country: "India", capacity: "2,245 MW" },
+        { name: "Tengger Desert Solar Park", type: "Solar", lat: 37.5000, lng: 104.9400, country: "China", capacity: "1,547 MW" },
+        { name: "Hornsea Wind Farm", type: "Offshore Wind", lat: 53.8850, lng: 1.7990, country: "UK", capacity: "2,852 MW" },
+      ];
+
+      const RISK_CATEGORY_COLORS = {
+        energy: { label: "Energy & Shipping", color: "#ff6b35" },
+        defense: { label: "Defense & Conflict", color: "#ff4d4d" },
+        tech: { label: "Tech & Supply Chain", color: "#a78bfa" },
+        rates: { label: "Rates & Policy", color: "#60a5fa" },
+        currency: { label: "Currency & FX", color: "#fbbf24" },
+        commodity: { label: "Commodities", color: "#34d399" },
+        emerging: { label: "Emerging Markets", color: "#f97316" },
+      };
 
       const container = document.getElementById("globe-viz");
       const tooltip = document.getElementById("threat-tooltip");
@@ -399,83 +736,10 @@
       const NE_COUNTRIES_GEOJSON =
         "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson";
 
-      /** Solid dark-blue “ocean” for the sphere; uniform grey bump = flat (no terrain ridges on water). */
-      const GLOBE_OCEAN_TEXTURE =
-        "data:image/svg+xml," +
-        encodeURIComponent(
-          '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#071d33"/></svg>',
-        );
-      const GLOBE_FLAT_BUMP =
-        "data:image/svg+xml," +
-        encodeURIComponent(
-          '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#808080"/></svg>',
-        );
-
-      /**
-       * Country outlines + one label per sovereign feature (centroid of geometry).
-       */
-      async function loadCountryOutlinesAndLabels() {
-        if (!globe) return;
-        const res = await fetch(NE_COUNTRIES_GEOJSON, { mode: "cors" });
-        if (!res.ok)
-          throw new Error("Failed to load Natural Earth countries GeoJSON");
-
-        const geo = await res.json();
-        const features = geo.features || [];
-
-        globe
-          .polygonsData(features)
-          .polygonGeoJsonGeometry("geometry")
-          .polygonAltitude(0.0022)
-          .polygonCapColor(() => "rgba(118, 124, 136, 0.92)")
-          .polygonSideColor(() => "rgba(72, 76, 86, 0.95)")
-          .polygonStrokeColor(() => "rgba(52, 56, 64, 0.88)")
-          .polygonCapCurvatureResolution(4)
-          .polygonLabel((d) => {
-            const p = d.properties || {};
-            return p.ADMIN || p.NAME || p.NAME_LONG || "";
-          });
-
-        const turfGlobal = typeof turf !== "undefined" ? turf : window.turf;
-        const labels = [];
-        if (turfGlobal && typeof turfGlobal.centroid === "function") {
-          for (const f of features) {
-            try {
-              const c = turfGlobal.centroid(f);
-              const [lng, lat] = c.geometry.coordinates;
-              const p = f.properties || {};
-              const text = p.NAME_LONG || p.NAME || p.ADMIN || p.BRK_NAME || "";
-              if (!text) continue;
-              const labelrank = Number(p.LABELRANK);
-              const lr = Number.isFinite(labelrank) ? labelrank : 6;
-              countryCentroids[p.ISO_A2 || p.ADM0_A3] = { lat, lng };
-              labels.push({
-                lat,
-                lng,
-                text,
-                labelrank: lr,
-              });
-            } catch (e) {
-              /* skip invalid geometries */
-            }
-          }
-
-          globe
-            .labelsData(labels)
-            .labelLat("lat")
-            .labelLng("lng")
-            .labelText("text")
-            .labelColor(() => "rgba(245, 246, 250, 0.94)")
-            .labelSize((d) => {
-              const lr = Number(d.labelrank) || 6;
-              return Math.max(0.09, 0.48 - lr * 0.055);
-            })
-            .labelDotRadius(0)
-            .labelIncludeDot(false)
-            .labelAltitude(0.0025)
-            .labelResolution(2);
-        }
-      }
+      // CesiumJS viewer and overlay arrays
+      let viewer = null;
+      let cesiumMarkers = [];
+      let cesiumArcs = [];
 
       /** Worst session % (live) drives red vs orange marker glow */
       function zoneStressDrop(zone) {
@@ -530,75 +794,252 @@
           .filter(Boolean);
       }
 
-      function mountGlobe() {
+      async function mountGlobe() {
         const combinedData = [
           ...threatZones.map((z) => ({ ...z, type: "threat" })),
           ...mergePulseWithCentroids(marketPulse),
         ];
 
-        globe = Globe()(container)
-          .globeImageUrl(GLOBE_OCEAN_TEXTURE)
-          .bumpImageUrl(GLOBE_FLAT_BUMP)
-          .backgroundColor("#050a14")
-          .htmlElementsData(combinedData)
-          .htmlElement((d) => {
-            const el = document.createElement("div");
-            const stress = d.type === "threat" ? zoneStressDrop(d) : d.change;
+        // Suppress Cesium Ion default token to prevent Bing Maps requests
+        Cesium.Ion.defaultAccessToken = undefined;
 
-            let colorClass = "";
-            if (d.type === "threat") {
-              colorClass = Math.abs(stress) >= 2 ? "" : "threat-marker--orange";
-            } else {
-              // Market Pulse logic
-              if (stress <= -1.5)
-                colorClass = ""; // Red
-              else if (stress >= 1.5) colorClass = "threat-marker--green";
-              else colorClass = "threat-marker--yellow";
-            }
-
-            el.className = `threat-marker ${colorClass}`.trim();
-
-            el.addEventListener("mouseenter", (evt) => {
-              if (d.type === "threat") showTooltip(evt, d);
-              else showPulseTooltip(evt, d);
-            });
-            el.addEventListener("mousemove", moveTooltip);
-            el.addEventListener("mouseleave", hideTooltip);
-
-            el.addEventListener("click", () => {
-              stopAutoRotate();
-              globe.pointOfView(
-                { lat: d.lat, lng: d.lng, altitude: 1.5 },
-                1000,
-              );
-            });
-
-            return el;
-          });
-
-        globe.pointOfView({ lat: 18, lng: 12, altitude: 2.2 }, 0);
-
-        controls = globe.controls();
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.08;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.22;
-        controls.minDistance = 110;
-        controls.maxDistance = 500;
-
-        globe.atmosphereColor("#3d5a8a");
-        globe.atmosphereAltitude(0.18);
-
-        window.addEventListener("resize", () => {
-          globe.width(window.innerWidth);
-          globe.height(window.innerHeight);
+        // 1. Init Cesium Viewer — no Ion widgets, no premium layers
+        viewer = new Cesium.Viewer('globe-viz', {
+          imageryProvider: false,
+          baseLayerPicker: false,
+          timeline: false,
+          animation: false,
+          geocoder: false,
+          homeButton: false,
+          infoBox: false,
+          sceneModePicker: false,
+          navigationHelpButton: false,
+          fullscreenButton: false,
+          selectionIndicator: false,
+          shadows: false,
+          requestRenderMode: false
         });
+
+        // Hide Cesium credits bar
+        var cc = viewer.cesiumWidget.creditContainer;
+        if (cc) cc.style.display = 'none';
+
+        // Style the globe
+        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#0a1128');
+        viewer.scene.backgroundColor = Cesium.Color.fromCssColorString('#000000');
+        viewer.scene.globe.showGroundAtmosphere = true;
+        viewer.scene.globe.enableLighting = false;
+
+        // 2. Hide loader IMMEDIATELY
+        var loader = document.getElementById("globe-loader");
+        if (loader) {
+          loader.style.opacity = "0";
+          loader.style.visibility = "hidden";
+        }
+
+        // 3. Add CartoDB Dark (free, no key) — natural earth tones with labels
+        var earthLayer = viewer.imageryLayers.addImageryProvider(
+          new Cesium.UrlTemplateImageryProvider({
+            url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+            subdomains: 'abcd',
+            maximumLevel: 18,
+            credit: 'CartoDB'
+          })
+        );
+        earthLayer.brightness = 1.3;
+        earthLayer.contrast = 1.1;
+        earthLayer.saturation = 0.8;
+
+        // 4. Default camera view
+        viewer.camera.setView({
+            destination: Cesium.Cartesian3.fromDegrees(10.0, 20.0, 12000000)
+        });
+
+        // 5. Create marker overlay container
+        var markersContainer = document.createElement('div');
+        markersContainer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;';
+        document.getElementById("globe-viz").appendChild(markersContainer);
+
+        function renderMarkers(data) {
+           markersContainer.innerHTML = '';
+           cesiumMarkers = data.map(function(d) {
+             var el = document.createElement("div");
+             var stress = d.type === "threat" ? zoneStressDrop(d) : d.change;
+
+             var markerClass = "";
+             if (d.type === "threat") {
+               // Threat markers: red for severe, orange for moderate
+               markerClass = "threat-marker" + (Math.abs(stress) >= 2 ? "" : " threat-marker--orange");
+             } else {
+               // Pulse markers: green=up, red=down, grey=flat
+               var v = Number(stress);
+               var dir = (!Number.isFinite(v) || Math.abs(v) < 0.3) ? "--flat" : (v > 0 ? "--up" : "--down");
+               markerClass = "pulse-marker pulse-marker" + dir;
+             }
+
+             el.className = markerClass;
+             el.style.position = 'absolute';
+             el.style.pointerEvents = 'auto';
+
+             el.addEventListener("mouseenter", function(evt) {
+               if (d.type === "threat") showTooltip(evt, d);
+               else showPulseTooltip(evt, d);
+             });
+             el.addEventListener("mousemove", moveTooltip);
+             el.addEventListener("mouseleave", hideTooltip);
+
+             el.addEventListener("click", function() {
+               stopAutoRotate();
+               viewer.camera.flyTo({
+                  destination: Cesium.Cartesian3.fromDegrees(d.lng, d.lat, 1500000),
+                  duration: 1.0
+               });
+               
+               var prompt = "";
+               if (d.type === "threat") {
+                 var drop = d.topStocks && d.topStocks[0] ? d.topStocks[0].stockDrop : 0;
+                 var company = d.topStocks && d.topStocks[0] ? d.topStocks[0].name : "the region";
+                 prompt = "Analyze the live market threat in " + d.regionLabel + " (" + d.threatName + ") regarding " + company + " with a " + drop + "% impact.";
+               } else {
+                 prompt = "Give me a quick analysis of the market pulse in " + d.name + ". The index " + d.indexTicker + " is at " + d.change + "%.";
+               }
+               if (window.askSathi) {
+                 window.askSathi(prompt);
+               }
+             });
+
+             markersContainer.appendChild(el);
+             return { el: el, lat: d.lat, lng: d.lng, d: d };
+           });
+        }
+        
+        renderMarkers(combinedData);
+
+        // 6. Sync HTML markers to Cesium camera on every frame (with globe occlusion)
+        viewer.scene.preRender.addEventListener(function() {
+            var cameraPos = viewer.camera.positionWC;
+            var occluder = new Cesium.EllipsoidalOccluder(viewer.scene.globe.ellipsoid, cameraPos);
+
+            cesiumMarkers.forEach(function(m) {
+                var position = Cesium.Cartesian3.fromDegrees(m.lng, m.lat, 100);
+
+                // Only show markers on the visible (front) side of the globe
+                if (!occluder.isPointVisible(position)) {
+                    m.el.style.display = 'none';
+                    return;
+                }
+
+                var canvasPosition = viewer.scene.cartesianToCanvasCoordinates(position);
+                if (Cesium.defined(canvasPosition)) {
+                    m.el.style.left = canvasPosition.x + 'px';
+                    m.el.style.top = canvasPosition.y + 'px';
+                    m.el.style.display = 'block';
+                } else {
+                    m.el.style.display = 'none';
+                }
+            });
+        });
+
+        // 7. Render static markers for Energy Plants and Stock Exchanges
+        function renderStaticMarkers() {
+           // Stock Exchanges — blue diamonds
+           STOCK_EXCHANGES.forEach(function(ex) {
+              var el = document.createElement('div');
+              el.className = 'exchange-marker';
+              el.style.position = 'absolute';
+              el.style.pointerEvents = 'auto';
+              el.addEventListener('mouseenter', function(evt) {
+                tooltip.innerHTML = '<p class="tt-region">' + escapeHtml(ex.name) + '</p>' +
+                  '<p class="tt-title">' + escapeHtml(ex.abbr) + ' · ' + escapeHtml(ex.city) + '</p>';
+                tooltip.classList.add('visible');
+                tooltip.setAttribute('aria-hidden', 'false');
+                moveTooltip(evt);
+              });
+              el.addEventListener('mousemove', moveTooltip);
+              el.addEventListener('mouseleave', hideTooltip);
+              el.addEventListener('click', function() {
+                stopAutoRotate();
+                viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(ex.lng, ex.lat, 500000), duration: 1.0 });
+                if (window.askSathi) window.askSathi('Tell me about ' + ex.name + ' (' + ex.abbr + ') in ' + ex.city + '. What is its market cap, trading volume, and significance?');
+              });
+              markersContainer.appendChild(el);
+              cesiumMarkers.push({ el: el, lat: ex.lat, lng: ex.lng, d: ex });
+           });
+
+           // Energy Plants — amber dots
+           ENERGY_PLANTS.forEach(function(plant) {
+              var el = document.createElement('div');
+              el.className = 'energy-marker';
+              el.style.position = 'absolute';
+              el.style.pointerEvents = 'auto';
+              el.addEventListener('mouseenter', function(evt) {
+                tooltip.innerHTML = '<p class="tt-region">' + escapeHtml(plant.name) + '</p>' +
+                  '<p class="tt-title">' + escapeHtml(plant.type) + ' · ' + escapeHtml(plant.capacity) + '</p>' +
+                  '<p class="tt-news">' + escapeHtml(plant.country) + '</p>';
+                tooltip.classList.add('visible');
+                tooltip.setAttribute('aria-hidden', 'false');
+                moveTooltip(evt);
+              });
+              el.addEventListener('mousemove', moveTooltip);
+              el.addEventListener('mouseleave', hideTooltip);
+              el.addEventListener('click', function() {
+                stopAutoRotate();
+                viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(plant.lng, plant.lat, 500000), duration: 1.0 });
+                if (window.askSathi) window.askSathi('Analyze the ' + plant.name + ' (' + plant.type + ', ' + plant.capacity + ') in ' + plant.country + '. What is its economic impact and any associated market risks?');
+              });
+              markersContainer.appendChild(el);
+              cesiumMarkers.push({ el: el, lat: plant.lat, lng: plant.lng, d: plant });
+           });
+        }
+
+        renderStaticMarkers();
+
+        window._renderMarkers = renderMarkers;
+
+        renderLegend();
+        
+        // 8. Auto-rotation
+        viewer.clock.onTick.addEventListener(function() {
+            if (isAutoRotateEnabled) {
+                viewer.scene.camera.rotate(Cesium.Cartesian3.UNIT_Z, -0.001);
+            }
+        });
+
+        // Stop auto-rotation as soon as the user interacts with the globe
+        const canvas = viewer.canvas;
+        canvas.addEventListener('mousedown', stopAutoRotate);
+        canvas.addEventListener('touchstart', stopAutoRotate);
+        canvas.addEventListener('wheel', stopAutoRotate);
+      }
+
+
+      function renderLegend() {
+        const legendEl = document.getElementById("globe-legend");
+        let html = '<h4>Globe Key</h4>';
+        // Threat categories
+        const usedCategories = new Set();
+        for (const z of threatZones) usedCategories.add(z.riskCategory || "energy");
+        for (const [key, val] of Object.entries(RISK_CATEGORY_COLORS)) {
+          if (!usedCategories.has(key)) continue;
+          html += '<div class="legend-item"><span class="legend-dot" style="--dot-color:' + val.color + ';background:' + val.color + '"></span>' + val.label + '</div>';
+        }
+        // Pulse, Exchange, Energy
+        html += '<div class="legend-item"><span class="legend-dot" style="--dot-color:#34d399;background:#34d399"></span>Market Pulse</div>';
+        html += '<div class="legend-item"><span class="legend-dot" style="--dot-color:#60a5fa;background:#60a5fa;border-radius:2px;transform:rotate(45deg)"></span>Stock Exchange</div>';
+        html += '<div class="legend-item"><span class="legend-dot" style="--dot-color:#f59e0b;background:#f59e0b"></span>Energy Plant</div>';
+        legendEl.innerHTML = html;
       }
 
       function stopAutoRotate() {
-        if (!isAutoRotateEnabled || !controls) return;
         isAutoRotateEnabled = false;
-        controls.autoRotate = false;
+        
+        // Clear any existing timer
+        if (autoRotateTimeout) clearTimeout(autoRotateTimeout);
+        
+        // Resume rotation after 5 seconds of inactivity
+        autoRotateTimeout = setTimeout(function() {
+          isAutoRotateEnabled = true;
+        }, 5000);
       }
 
       function formatDrop(n) {
@@ -657,30 +1098,31 @@
       }
 
       function showPulseTooltip(evt, country) {
-        const stocksHtml = (country.topStocks || [])
-          .map((s) => {
-            const v = Number(s.change);
-            const down = Number.isFinite(v) && v < 0;
-            const up = Number.isFinite(v) && v > 0;
-            const cls = down ? "tt-drop--down" : up ? "tt-drop--up" : "";
-            const px = Number.isFinite(s.price)
-              ? `<span class="tt-px">@ ${s.price.toFixed(2)}${s.currency ? " " + escapeHtml(s.currency) : ""}</span>`
-              : "";
-            return `<li><span class="tt-tick">${escapeHtml(s.ticker)}</span><span>${escapeHtml(s.name)}</span><span class="tt-drop ${cls}">${formatDrop(s.change)}${px}</span></li>`;
-          })
-          .join("");
-
         const vIndex = Number(country.change);
-        const indexCls =
-          vIndex < 0 ? "tt-drop--down" : vIndex > 0 ? "tt-drop--up" : "";
+        const indexCls = vIndex < 0 ? "tt-drop--down" : vIndex > 0 ? "tt-drop--up" : "";
 
-        tooltip.innerHTML = `
-        <p class="tt-region">${escapeHtml(country.name)}</p>
-        <p class="tt-title">Market Health: <span class="${indexCls}">${formatDrop(country.change)}</span></p>
-        <p class="tt-news" style="margin-bottom: 8px; font-weight: 600; color: #fff;">Top Tickers & Movers</p>
-        <ul class="tt-stocks">${stocksHtml}</ul>
-        <p class="tt-news">Representative Index: ${escapeHtml(country.indexTicker)}</p>
-      `;
+        // Only show stocks that have valid live data
+        const validStocks = (country.topStocks || []).filter(function(s) {
+          return s.price !== null && s.change !== null;
+        });
+
+        const stocksHtml = validStocks.map(function(s) {
+          const v = Number(s.change);
+          const cls = v < 0 ? "tt-drop--down" : v > 0 ? "tt-drop--up" : "";
+          return '<li>' +
+            '<span class="tt-tick">' + escapeHtml(s.ticker) + '</span>' +
+            '<span>' + escapeHtml(s.name) + '</span>' +
+            '<span class="tt-drop ' + cls + '">' + formatDrop(s.change) + '</span>' +
+          '</li>';
+        }).join("");
+
+        const priceStr = country.price !== null ? Number(country.price).toFixed(2) : '—';
+
+        tooltip.innerHTML =
+          '<p class="tt-region">' + escapeHtml(country.name) + '</p>' +
+          '<p class="tt-title">' + escapeHtml(country.indexTicker) + ': ' + priceStr + ' <span class="' + indexCls + '">' + formatDrop(country.change) + '</span></p>' +
+          (validStocks.length > 0 ? '<ul class="tt-stocks">' + stocksHtml + '</ul>' : '');
+
         tooltip.classList.add("visible");
         tooltip.setAttribute("aria-hidden", "false");
         moveTooltip(evt);
@@ -692,55 +1134,31 @@
 
         try {
           statusEl.textContent = "Loading market data…";
-          countryCentroids = { ...FALLBACK_COUNTRY_CENTROIDS };
-          // 1. Initial border load to get centroids
-          try {
-            const resCountries = await fetch(NE_COUNTRIES_GEOJSON, {
-              mode: "cors",
-            });
-            if (!resCountries.ok) {
-              throw new Error("HTTP " + resCountries.status);
-            }
-            const geoJSON = await resCountries.json();
-            const features = geoJSON.features || [];
-
-            const turfGlobal = typeof turf !== "undefined" ? turf : window.turf;
-            for (const f of features) {
-              try {
-                const c = turfGlobal.centroid(f);
-                const [lng, lat] = c.geometry.coordinates;
-                const p = f.properties || {};
-                const iso = p.ISO_A2 || p.ADM0_A3;
-                if (iso && iso !== "-99") countryCentroids[iso] = { lat, lng };
-              } catch (e) {}
-            }
-          } catch (centroidError) {
-            console.warn("Country centroids fallback active", centroidError);
-          }
-
-          // 2. Load threat zones + market pulse
+          // 1. Load threat zones + market pulse
           const [threatData, pulseData] = await Promise.all([
             fetchThreatZones(),
             fetchMarketPulse(),
           ]);
 
           threatZones = threatData.zones || [];
+          riskArcs = threatData.arcs || [];
           marketPulse = pulseData;
           aiPoweredGlobal = threatData.aiPowered;
+
+          // Update HUD badges
+          document.getElementById("zone-count-badge").textContent = threatZones.length + " zones";
+          const modelInfo = document.getElementById("globe-model-info");
+          if (threatData.model && threatData.model !== "fallback") {
+            modelInfo.textContent = "AI Model: " + threatData.model;
+          }
 
           baseStatus = `Global Market Pulse: Live · Tickers: ${pulseData.pulse?.length || 0}`;
           statusEl.textContent = baseStatus;
 
-          mountGlobe(); // This will use centroids
+          await mountGlobe(); // This will use centroids
 
           // Final border visuals
-          statusEl.textContent = baseStatus + " · Loading country borders…";
-          try {
-            await loadCountryOutlinesAndLabels();
-          } catch (borderError) {
-            console.warn("Country borders unavailable", borderError);
-            statusEl.textContent = baseStatus + " · Country borders unavailable";
-          }
+          statusEl.textContent = baseStatus + " · 3D Tiles Loaded";
         } catch (e) {
           console.error(e);
           statusEl.textContent = "Failed to load live globe data.";
@@ -760,7 +1178,8 @@
               ...threatZones.map((z) => ({ ...z, type: "threat" })),
               ...mergePulseWithCentroids(marketPulse),
             ];
-            globe.htmlElementsData(combinedData);
+            
+            if (window._renderMarkers) window._renderMarkers(combinedData);
           } catch (err) {
             console.warn("Refresh failed", err);
           }
