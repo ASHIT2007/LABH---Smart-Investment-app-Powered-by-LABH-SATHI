@@ -1555,16 +1555,54 @@ window.openStockDetail = async (sym) => {
       });
   }
 
-  // Setup Financial Bars Data globally so tabs can use it
-  window.currentFinData = {
-    revenue: Array.from({ length: 5 }, (_, i) => rand(10000, 90000).toFixed(0)),
-    profit: Array.from({ length: 5 }, (_, i) => rand(1000, 9000).toFixed(0)),
-    networth: Array.from({ length: 5 }, (_, i) =>
-      rand(50000, 150000).toFixed(0),
-    ),
-    labels: ["Dec '24", "Mar '25", "Jun '25", "Sep '25", "Dec '25"],
-  };
-  renderFinancials("revenue");
+  // Fetch Fundamentals and Shareholding from Backend
+  window.currentFinData = null;
+  const finContainer = document.getElementById("finBarsContainer");
+  if (finContainer) finContainer.innerHTML = '<div style="color:var(--muted); font-size:12px; margin:auto;">Loading financials...</div>';
+  
+  const shareContainer = document.getElementById("shareholdingLegend");
+  if (shareContainer) shareContainer.innerHTML = '';
+  const shareEmpty = document.getElementById("shareholdingEmptyState");
+  if (shareEmpty) shareEmpty.style.display = "none";
+
+  apiCall(`/fundamentals/${stock.sym}`).then((data) => {
+    // Process Financials
+    if (data.financials && data.financials.length > 0) {
+      // Sort by date ascending
+      const sorted = data.financials.sort((a,b) => new Date(a.date) - new Date(b.date));
+      // Take last 5 quarters
+      const latest = sorted.slice(-5);
+      
+      const formatCr = (val) => val ? (val / 10000000).toFixed(0) : "0"; // To Crores
+      const formatMonthYr = (dateStr) => {
+        const d = new Date(dateStr);
+        return d.toLocaleString('default', { month: 'short' }) + " '" + d.getFullYear().toString().substr(-2);
+      };
+
+      window.currentFinData = {
+        revenue: latest.map(f => formatCr(f.totalRevenue)),
+        profit: latest.map(f => formatCr(f.netIncome || f.operatingIncome || 0)),
+        networth: latest.map(f => formatCr(f.stockholdersEquity || f.totalAssets || 0)),
+        labels: latest.map(f => formatMonthYr(f.date))
+      };
+      renderFinancials("revenue");
+    } else {
+      if (finContainer) finContainer.innerHTML = '<div style="color:var(--muted); font-size:12px; margin:auto;">Financial data not available.</div>';
+    }
+
+    // Process Shareholding
+    if (data.shareholding && Object.keys(data.shareholding).length > 0) {
+      renderShareholding(data.shareholding);
+    } else {
+      const shareCanvas = document.getElementById("shareholdingChart");
+      if(shareCanvas) shareCanvas.style.display = "none";
+      if(shareEmpty) shareEmpty.style.display = "block";
+    }
+  }).catch(err => {
+    console.error("Fundamentals error:", err);
+    if (finContainer) finContainer.innerHTML = '<div style="color:var(--muted); font-size:12px; margin:auto;">Failed to load data.</div>';
+    if(shareEmpty) shareEmpty.style.display = "block";
+  });
 
   // Fetch News for this stock if tab is active, or pre-fetch
   fetchStockRelatedNews(stock.sym);
@@ -1657,6 +1695,75 @@ document.addEventListener("click", (e) => {
     }
   }
 });
+
+let currentShareholdingChart = null;
+
+function renderShareholding(sh) {
+  const canvas = document.getElementById("shareholdingChart");
+  const legend = document.getElementById("shareholdingLegend");
+  const empty = document.getElementById("shareholdingEmptyState");
+  
+  if (!canvas || !legend) return;
+  
+  canvas.style.display = "block";
+  if (empty) empty.style.display = "none";
+
+  // Data mapping from Yahoo Finance majorHoldersBreakdown
+  const labels = [
+    "Insiders",
+    "Institutions",
+    "Float / Public"
+  ];
+  
+  const insiders = (sh.insidersPercentHeld || 0) * 100;
+  const institutions = (sh.institutionsPercentHeld || 0) * 100;
+  let publicHeld = 100 - insiders - institutions;
+  if (publicHeld < 0) publicHeld = 0;
+  
+  const dataVals = [insiders.toFixed(2), institutions.toFixed(2), publicHeld.toFixed(2)];
+  const colors = ['#3b82f6', '#10b981', '#6366f1']; // Blue, Green, Indigo
+
+  if (currentShareholdingChart) {
+    currentShareholdingChart.destroy();
+  }
+
+  currentShareholdingChart = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: dataVals,
+        backgroundColor: colors,
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return ' ' + context.label + ': ' + context.raw + '%';
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Render Custom Legend
+  legend.innerHTML = labels.map((lbl, i) => `
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <div style="width: 12px; height: 12px; border-radius: 50%; background: ${colors[i]};"></div>
+      <div style="color: var(--muted);">${lbl}</div>
+      <div style="font-weight: 600; color: white;">${dataVals[i]}%</div>
+    </div>
+  `).join('');
+}
 
 function renderFinancials(type) {
   const container = document.getElementById("finBarsContainer");

@@ -14,6 +14,9 @@ import { computeIndicators, formatIndicatorsForPrompt, computePortfolioMetrics, 
 import path from "path";
 import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
+import YahooFinance from 'yahoo-finance2';
+
+const yahooFinance = new YahooFinance();
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
@@ -728,6 +731,51 @@ app.get("/api/company-info/:symbol", async (req, res) => {
   }
 });
 // --- END COMPANY INFO ENGINE ---
+
+// --- FUNDAMENTALS ENGINE (yahoo-finance2) ---
+const fundamentalsCache = {};
+
+app.get("/api/fundamentals/:symbol", async (req, res) => {
+  const { symbol } = req.params;
+
+  if (fundamentalsCache[symbol] && (Date.now() - fundamentalsCache[symbol].timestamp < 86400000)) { // 24hr cache
+    return res.json(fundamentalsCache[symbol].data);
+  }
+
+  try {
+    let yfSymbol = symbol;
+    // Append .NS for Indian stocks if they don't have a suffix, as our dashboard mostly tracks Indian stocks.
+    // If it's something like AAPL or already has .NS or .BO, leave it.
+    if (!yfSymbol.includes('.') && yfSymbol !== 'BTC' && yfSymbol !== 'AAPL') {
+        yfSymbol = yfSymbol + '.NS';
+    }
+
+    const timeseries = await yahooFinance.fundamentalsTimeSeries(yfSymbol, {
+      period1: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000 * 2), // 2 years back
+      module: 'financials'
+    });
+
+    const quoteSummary = await yahooFinance.quoteSummary(yfSymbol, {
+      modules: ['majorHoldersBreakdown']
+    });
+
+    const result = {
+      financials: timeseries,
+      shareholding: quoteSummary.majorHoldersBreakdown || {}
+    };
+
+    fundamentalsCache[symbol] = {
+      timestamp: Date.now(),
+      data: result
+    };
+
+    res.json(result);
+  } catch (error) {
+    console.error(`[Fundamentals Error] for ${symbol}:`, error.message);
+    res.status(500).json({ error: "Failed to fetch fundamentals" });
+  }
+});
+// --- END FUNDAMENTALS ENGINE ---
 
 // --- SENTIMENT ENGINE ---
 let sentimentCache = null;
