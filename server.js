@@ -744,20 +744,35 @@ app.get("/api/fundamentals/:symbol", async (req, res) => {
 
   try {
     let yfSymbol = symbol;
-    // Append .NS for Indian stocks if they don't have a suffix, as our dashboard mostly tracks Indian stocks.
-    // If it's something like AAPL or already has .NS or .BO, leave it.
-    if (!yfSymbol.includes('.') && yfSymbol !== 'BTC' && yfSymbol !== 'AAPL') {
+    const stockInfo = STOCKS_DATA[symbol];
+    if (stockInfo) {
+      if (stockInfo.exchange === 'NSE' && !yfSymbol.includes('.')) yfSymbol += '.NS';
+      else if (stockInfo.exchange === 'BSE' && !yfSymbol.includes('.')) yfSymbol += '.BO';
+      else if (yfSymbol === 'BTC' || yfSymbol === 'ETH' || yfSymbol.endsWith('USDT')) {
+         yfSymbol = yfSymbol.replace('USDT', '') + '-USD';
+      }
+    } else if (!yfSymbol.includes('.') && yfSymbol !== 'BTC' && yfSymbol !== 'AAPL') {
         yfSymbol = yfSymbol + '.NS';
     }
 
-    const timeseries = await yahooFinance.fundamentalsTimeSeries(yfSymbol, {
-      period1: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000 * 2), // 2 years back
-      module: 'financials'
-    });
+    let timeseries = [];
+    try {
+      timeseries = await yahooFinance.fundamentalsTimeSeries(yfSymbol, {
+        period1: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000 * 2), // 2 years back
+        module: 'financials'
+      });
+    } catch (e) {
+      console.warn(`[Fundamentals] No timeseries for ${yfSymbol}`);
+    }
 
-    const quoteSummary = await yahooFinance.quoteSummary(yfSymbol, {
-      modules: ['majorHoldersBreakdown']
-    });
+    let quoteSummary = {};
+    try {
+      quoteSummary = await yahooFinance.quoteSummary(yfSymbol, {
+        modules: ['majorHoldersBreakdown']
+      });
+    } catch (e) {
+      console.warn(`[Fundamentals] No quoteSummary for ${yfSymbol}`);
+    }
 
     const result = {
       financials: timeseries,

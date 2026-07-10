@@ -1601,6 +1601,8 @@ window.openStockDetail = async (sym) => {
   }).catch(err => {
     console.error("Fundamentals error:", err);
     if (finContainer) finContainer.innerHTML = '<div style="color:var(--muted); font-size:12px; margin:auto;">Failed to load data.</div>';
+    const shareCanvas = document.getElementById("shareholdingChart");
+    if(shareCanvas) shareCanvas.style.display = "none";
     if(shareEmpty) shareEmpty.style.display = "block";
   });
 
