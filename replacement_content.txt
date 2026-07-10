@@ -1,0 +1,52 @@
+    // Create the minimal TradingView widget for dashboard
+    let tvStyle = "1"; // candle
+    if (window.currentChartMode === 'line') tvStyle = "2";
+    else if (window.currentChartMode === 'area') tvStyle = "3";
+    else if (window.currentChartMode === 'bar') tvStyle = "0";
+
+    let tvInterval = "D";
+    if (interval === '1m') tvInterval = "1";
+    else if (interval === '5m') tvInterval = "5";
+    else if (interval === '15m') tvInterval = "15";
+    else if (interval === '60m' || interval === '1h') tvInterval = "60";
+    else if (interval === '1d') tvInterval = "D";
+    else if (interval === '1wk') tvInterval = "W";
+    else if (interval === '1mo') tvInterval = "M";
+
+    const tvDiv = document.createElement("div");
+    tvDiv.id = "tv_chart_main_" + Date.now();
+    tvDiv.style.width = "100%";
+    tvDiv.style.height = "100%";
+    container.appendChild(tvDiv);
+
+    const tvInstance = new TradingView.widget({
+      "autosize": true,
+      "symbol": sym,
+      "interval": tvInterval,
+      "timezone": "Etc/UTC",
+      "theme": isDark ? "dark" : "light",
+      "style": tvStyle,
+      "locale": "en",
+      "enable_publishing": false,
+      "backgroundColor": isDark ? "#12141c" : "#ffffff",
+      "gridColor": isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+      "hide_top_toolbar": true,
+      "hide_legend": true,
+      "save_image": false,
+      "hide_side_toolbar": true,
+      "allow_symbol_change": false,
+      "details": false,
+      "hotlist": false,
+      "calendar": false,
+      "show_popup_button": false,
+      "container_id": tvDiv.id,
+      "toolbar_bg": isDark ? "#12141c" : "#f1f3f6",
+      "studies": [
+        "Volume@tv-basicstudies"
+      ]
+    });
+
+    currentChart = {
+      remove: () => tvDiv.remove(),
+      timeScale: () => ({ fitContent: () => {} }) // Stub for compatibility
+    };

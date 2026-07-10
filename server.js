@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import Groq from "groq-sdk";
 import OpenAI from "openai";
-import { users as initialUsers, interlocks, STOCKS_DATA } from "./data/store.js";
+import { interlocks, STOCKS_DATA } from "./data/store.js";
 import { getCountryImpactPayload } from "./data/country-impact.js";
 import { enrichCountryImpactWithLiveData } from "./lib/yahoo-live.js";
 import { generateRecommendations } from "./lib/ml-recommender.js";
@@ -13,16 +13,20 @@ import { getGlobalMarketPulsePayload } from "./lib/global-market-pulse-live.js";
 import { computeIndicators, formatIndicatorsForPrompt, computePortfolioMetrics, formatPortfolioMetricsForPrompt, getSector } from "./lib/technical-indicators.js";
 import path from "path";
 import { fileURLToPath } from "url";
-import fs from "fs";
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+export const supabase = SUPABASE_URL ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const nvidiaAi = new OpenAI({
   baseURL: "https://integrate.api.nvidia.com/v1",
-  apiKey: "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"
+  apiKey: process.env.NVIDIA_API_KEY_1
 });
 
 const moonshotAi = new OpenAI({
   baseURL: "https://integrate.api.nvidia.com/v1",
-  apiKey: "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"
+  apiKey: process.env.NVIDIA_API_KEY_2
 });
 
 // --- TECHNICAL INDICATOR CACHE (5-minute TTL) ---
@@ -31,62 +35,7 @@ const INDICATOR_CACHE_TTL = 300000; // 5 minutes
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const USERS_FILE = path.join(__dirname, "data", "users.json");
-
-// Load users from file or fall back to store.js
-function loadUsers() {
-  let loaded = initialUsers;
-  try {
-    if (fs.existsSync(USERS_FILE)) {
-      const data = fs.readFileSync(USERS_FILE, "utf-8");
-      loaded = JSON.parse(data);
-    }
-  } catch (e) {
-    console.error("[Persistence] Error loading users:", e);
-  }
-  
-  // Normalize legacy USD prices to INR for intl stocks in user portfolios and trades
-  loaded.forEach(user => {
-    if (user.portfolio) {
-      user.portfolio.forEach(pos => {
-        const stockRef = STOCKS_DATA[pos.ticker];
-        if (stockRef && stockRef.intl && pos.avgPrice < 2000) {
-          pos.avgPrice *= 83.5;
-        }
-      });
-    }
-    if (user.trades) {
-      user.trades.forEach(trade => {
-        const stockRef = STOCKS_DATA[trade.ticker];
-        if (stockRef && stockRef.intl && trade.price < 2000) {
-          trade.price *= 83.5;
-        }
-        
-        // Force total to be mathematically consistent with price, 
-        // fixing cases where price was normalized but total was not.
-        if (trade.qty && trade.price) {
-          trade.total = trade.price * trade.qty;
-        }
-      });
-      
-      // Recalculate true balance to wipe out any fake inflation from the bug
-      let trueBalance = 100000; // Starting balance
-      user.trades.forEach(trade => {
-        if (trade.type === "BUY") trueBalance -= trade.total;
-        if (trade.type === "SELL") trueBalance += trade.total;
-      });
-      user.balance = trueBalance;
-    }
-  });
-  
-  // Write the fixed data back to disk so we don't have to do this every boot
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(loaded, null, 2));
-  } catch(e) {}
-  
-  return loaded;
-}
+    
 
 // Normalize initial hardcoded STOCKS_DATA to INR so early trades don't glitch
 Object.values(STOCKS_DATA).forEach(stock => {
@@ -96,15 +45,6 @@ Object.values(STOCKS_DATA).forEach(stock => {
     if (stock.week52Low) stock.week52Low *= 83.5;
   }
 });
-
-// Global persistence helper
-function saveUsers() {
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-  } catch (e) {
-    console.error("[Persistence] Error saving users:", e);
-  }
-}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -118,51 +58,33 @@ app.use(express.static(path.join(__dirname, "frontend")));
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const ai = GROQ_API_KEY ? new Groq({ apiKey: GROQ_API_KEY }) : null;
 
-let users = loadUsers();
 
 // Auth Routes
 app.post("/api/auth/register", (req, res) => {
-  const { name, email, password, level = "Beginner" } = req.body;
-  if (users.find((u) => u.email === email))
-    return res.status(400).json({ error: "Email exists" });
-  const user = {
-    id: Date.now().toString(),
-    name,
-    email,
-    password,
-    balance: 100000,
-    portfolio: [],
-    trades: [],
-    level,
-  };
-  users.push(user);
-  saveUsers();
-  res.json({ user });
+  res.status(400).json({ error: "Please use Supabase Auth on the frontend." });
 });
 
 app.post("/api/auth/login", (req, res) => {
-  const { email, password } = req.body;
-  const user = users.find((u) => u.email === email && u.password === password);
-  if (!user) return res.status(401).json({ error: "Invalid credentials" });
-  res.json({ user });
+  res.status(400).json({ error: "Please use Supabase Auth on the frontend." });
 });
 
-app.get("/api/auth/me", (req, res) => {
-  const user = users.find((u) => u.email === req.query.email);
+app.get("/api/auth/me", async (req, res) => {
+  const { data: user } = await supabase.from("profiles").select("*").eq("email", req.query.email).single();
   user ? res.json({ user }) : res.status(404).json({ error: "Not found" });
 });
 
-app.put("/api/auth/profile", (req, res) => {
+app.put("/api/auth/profile", async (req, res) => {
   const { id, name, avatar, phone } = req.body;
-  const user = users.find((u) => u.id === id);
+  const { data: user } = await supabase.from("profiles").select("*").eq("id", id).single();
   if (!user) return res.status(404).json({ error: "User not found" });
 
-  if (name) user.name = name;
-  if (avatar !== undefined) user.avatar = avatar; // Allow empty string to clear
-  if (phone !== undefined) user.phone = phone;
+  const updates = {};
+  if (name) updates.name = name;
+  if (avatar !== undefined) updates.avatar = avatar;
+  if (phone !== undefined) updates.phone = phone;
 
-  saveUsers();
-  res.json({ user });
+  const { data: updatedUser } = await supabase.from("profiles").update(updates).eq("id", id).select().single();
+  res.json({ user: updatedUser });
 });
 
 // Markets Route
@@ -259,50 +181,50 @@ async function fetchLivePrices() {
  * Background Order Processor
  * Checks for triggered Stop-Loss (SL) and Limit orders across all users
  */
-function processPendingOrders() {
+async function processPendingOrders() {
   let ordersProcessed = 0;
-  users.forEach((user) => {
-    if (!user.pendingOrders || user.pendingOrders.length === 0) return;
+  const { data: users } = await supabase.from("profiles").select("*");
+  if (!users) return;
+
+  for (const user of users) {
+    if (!user.pendingOrders || user.pendingOrders.length === 0) continue;
 
     const remainingOrders = [];
-    user.pendingOrders.forEach((order) => {
+    for (const order of user.pendingOrders) {
       const stock = STOCKS_DATA[order.ticker];
       if (!stock || !stock.price) {
         remainingOrders.push(order);
-        return;
+        continue;
       }
 
       let triggered = false;
       const currentPrice = stock.price;
 
-      // Logic:
-      // SL SELL: Trigger if Price <= TriggerPrice
-      // SL BUY: Trigger if Price >= TriggerPrice
       if (order.orderType === "SL") {
         if (order.type === "SELL" && currentPrice <= order.triggerPrice) triggered = true;
         if (order.type === "BUY" && currentPrice >= order.triggerPrice) triggered = true;
-      } 
-      // LIMIT SELL: Trigger if Price >= LimitPrice
-      // LIMIT BUY: Trigger if Price <= LimitPrice
-      else if (order.orderType === "LIMIT") {
+      } else if (order.orderType === "LIMIT") {
         if (order.type === "SELL" && currentPrice >= order.triggerPrice) triggered = true;
         if (order.type === "BUY" && currentPrice <= order.triggerPrice) triggered = true;
       }
 
       if (triggered) {
         console.log(`[OrderEngine] Triggered ${order.orderType} ${order.type} for ${user.email}: ${order.ticker} @ ${currentPrice}`);
-        executeTrade(user, order, currentPrice);
+        await executeTrade(user, order, currentPrice);
         ordersProcessed++;
       } else {
         remainingOrders.push(order);
       }
-    });
-
-    user.pendingOrders = remainingOrders;
-  });
+    }
+    
+    // Update user's pending orders in Supabase if changed
+    if (remainingOrders.length !== user.pendingOrders.length) {
+      await supabase.from("profiles").update({ pendingOrders: remainingOrders }).eq("id", user.id);
+    }
+  }
 
   if (ordersProcessed > 0) {
-    saveUsers();
+    console.log(`[OrderEngine] Processed ${ordersProcessed} pending orders.`);
   }
 }
 
@@ -1165,7 +1087,7 @@ app.post("/api/trade", async (req, res) => {
   if (!pricesLoaded) return res.status(503).json({ error: "Market data is still loading. Please try again in a few seconds." });
 
   const { userId, type, ticker, quantity } = req.body;
-  const user = users.find((u) => u.id === userId);
+  const { data: user } = await supabase.from("profiles").select("*").eq("id", userId).single();
   if (!user) return res.status(404).json({ error: "User not found" });
 
   const stock = STOCKS_DATA[ticker];
@@ -1192,7 +1114,12 @@ app.post("/api/trade", async (req, res) => {
       date: new Date().toISOString()
     });
     
-    saveUsers();
+    await supabase.from("profiles").update({
+      balance: user.balance,
+      portfolio: user.portfolio,
+      trades: user.trades,
+      pendingOrders: user.pendingOrders || []
+    }).eq("id", user.id);
     return res.json({ message: `${orderType} order placed successfully`, user });
   }
 
@@ -1249,7 +1176,12 @@ app.post("/api/trade", async (req, res) => {
       total: totalCost,
       date: executionDate,
     });
-    saveUsers();
+    await supabase.from("profiles").update({
+      balance: user.balance,
+      portfolio: user.portfolio,
+      trades: user.trades,
+      pendingOrders: user.pendingOrders || []
+    }).eq("id", user.id);
     res.json({ message: "Buy successful", user, aiCoachMessage, biasType });
   } else if (type === "SELL") {
     const existing = user.portfolio.find((p) => p.ticker === ticker);
@@ -1295,7 +1227,12 @@ app.post("/api/trade", async (req, res) => {
     }
     // -----------------------------------------------
 
-    saveUsers();
+    await supabase.from("profiles").update({
+      balance: user.balance,
+      portfolio: user.portfolio,
+      trades: user.trades,
+      pendingOrders: user.pendingOrders || []
+    }).eq("id", user.id);
     res.json({ message: "Sell successful", user, aiCoachMessage });
   } else {
     res.status(400).json({ error: "Invalid trade type" });
@@ -1360,6 +1297,8 @@ Format:
 
 // AI Chatbot with Multimodal & Tool Support
 app.post("/api/ai/chat", async (req, res) => {
+  const reqStartTime = Date.now();
+  let usedSources = [];
   try {
     if (!ai)
       return res.json({
@@ -1367,7 +1306,7 @@ app.post("/api/ai/chat", async (req, res) => {
           "I am Labh Sathi! Please add GROQ_API_KEY to enable my multimodal brain. I can then analyze your photos, charts, and files!",
       });
 
-    const { prompt, attachments, userId, modelId } = req.body;
+    const { prompt, attachments, userId, modelId, portfolio, trades } = req.body;
     const promptLower = (prompt || "").toLowerCase();
     
     const isVision = attachments && attachments.some((a) => a.type.startsWith("image/"));
@@ -1379,12 +1318,13 @@ app.post("/api/ai/chat", async (req, res) => {
     // --- DETECT JOURNAL REQUEST ---
     const isJournalRequest = /journal|grade my trades|session summary|trade summary|review my trades|analyze my trades/i.test(prompt);
     if (isJournalRequest) {
-      const user = userId ? users.find(u => u.id === userId) : null;
-      if (!user || !user.trades || user.trades.length === 0) {
+      const { data: user } = userId ? await supabase.from("profiles").select("*").eq("id", userId).single() : { data: null };
+      const userTrades = trades || (user ? user.trades : []);
+      if (!userTrades || userTrades.length === 0) {
         return res.json({ reply: "You haven't made any trades yet! Start trading and I'll be able to generate your personalized trade journal.", isJournal: true });
       }
       
-      const todayTrades = user.trades.slice(-10); // Last 10 trades
+      const todayTrades = userTrades.slice(-10); // Last 10 trades
       const tradesSummary = todayTrades.map((t, i) => 
         `${i+1}. ${t.type} ${t.qty}x ${t.ticker} @ ₹${t.price.toFixed(2)} (${new Date(t.date).toLocaleTimeString("en-IN")})`
       ).join("\n");
@@ -1428,7 +1368,7 @@ app.post("/api/ai/chat", async (req, res) => {
           `${s.sym}: ₹${Number(s.price || 0).toFixed(2)} (${s.change >= 0 ? "+" : ""}${Number(s.change || 0).toFixed(2)}%)`,
       )
       .join(", ");
-    const newsContext = newsCache
+    let newsContext = newsCache
       .slice(0, 50)
       .map((n) => `- ${n.title}`)
       .join("\n");
@@ -1447,24 +1387,63 @@ app.post("/api/ai/chat", async (req, res) => {
 4. comparison (comparing 2+ tickers or sectors)
 5. market (broad market outlook, top movers, news)
 6. decision (direct "should I buy/sell X" questions)
-7. educational (defining terms like RSI, VWAP)
+7. educational (defining terms like RSI, VWAP - ONLY for finance/trading terms)
 8. screener (filtering/searching for stocks based on criteria like "cheapest", "tech stocks under 50", etc)
-Return ONLY a valid JSON object: {"category": "category_name"}`
+9. irrelevant (non-financial questions, coding, math, general knowledge completely unrelated to finance or the app)
+
+CRITICAL RULE: If the user asks for code (e.g., C++, Python, HTML), math, or general knowledge, you MUST classify it as 'irrelevant'.
+If the user's query requires fetching live web context, recent news not in your knowledge, or detailed real-world facts, set 'search_query' to a concise Google-style search string.
+CRITICAL: For questions about "latest news", "trending stocks", or "market outlook", you MUST set a 'search_query' focused on Yahoo Finance and Google News (e.g., "latest stock market news site:finance.yahoo.com OR site:news.google.com").
+Otherwise, set 'search_query' to null.
+Return ONLY a valid JSON object: {"category": "category_name", "search_query": "search string or null"}`
         }, { role: "user", content: promptLower }],
         temperature: 0.1,
-        max_tokens: 50,
+        max_tokens: 150,
         response_format: { type: "json_object" }
       });
       const classParams = JSON.parse(classResponse.choices[0].message.content);
       if (classParams && classParams.category) {
         queryCategory = classParams.category;
       }
+
+      // --- TAVILY WEB SEARCH ---
+      if (classParams && classParams.search_query && process.env.TAVILY_API_KEY) {
+        try {
+          console.log(`[Tavily] Executing web search: "${classParams.search_query}"`);
+          const tvlyRes = await fetch("https://api.tavily.com/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              api_key: process.env.TAVILY_API_KEY,
+              query: classParams.search_query,
+              search_depth: "basic",
+              include_images: false,
+              max_results: 3
+            })
+          });
+          const tvlyData = await tvlyRes.json();
+          if (tvlyData && tvlyData.results) {
+            try {
+              usedSources = tvlyData.results.map(r => ({
+                title: r.title,
+                url: r.url,
+                domain: new URL(r.url).hostname.replace('www.', '')
+              }));
+            } catch(e) {}
+            const searchContext = tvlyData.results.map(r => `[${r.title}](${r.url}): ${r.content.substring(0, 500)}...`).join("\n\n");
+            newsContext += `\n\n=== LIVE WEB SEARCH RESULTS ===\n${searchContext}\n===============================\n`;
+          }
+        } catch(searchErr) {
+          console.warn("[Tavily] Search failed:", searchErr.message);
+        }
+      }
+
     } catch (e) {
       console.warn("[Classifier] Error:", e.message);
     }
 
     // --- DETECT REQUEST TYPE ---
-    const isChartRequest = /compare|chart|graph|plot|visualize|moving average|trend|performance/i.test(prompt);
+    const isChartRequest = /compare|chart|graph|plot|visualize|moving average|sma|ema|macd|rsi|vwap|trend|performance/i.test(prompt);
     const isWhatIfRequest = /what.?if|what happens|scenario|simulate|impact.*portfolio|stress test/i.test(prompt);
 
     let screenerMatchedTickers = [];
@@ -1513,9 +1492,10 @@ Return ONLY valid JSON: {"sector": "Technology" (optional), "maxPrice": number (
 
     // Build portfolio context for what-if scenarios
     let portfolioContext = "";
-    const user = userId ? users.find(u => u.id === userId) : null;
-    if (user && user.portfolio && user.portfolio.length > 0) {
-      portfolioContext = "\nUSER PORTFOLIO: " + user.portfolio.map(p => {
+    const { data: user } = userId ? await supabase.from("profiles").select("*").eq("id", userId).single() : { data: null };
+    const userPortfolio = portfolio || (user ? user.portfolio : []);
+    if (userPortfolio && userPortfolio.length > 0) {
+      portfolioContext = "\nUSER PORTFOLIO: " + userPortfolio.map(p => {
         const s = STOCKS_DATA[p.ticker];
         const sector = s && s.industry ? s.industry : getSector(p.ticker);
         return `${p.ticker} (${sector}): ${p.qty} shares @ avg ₹${p.avgPrice.toFixed(2)}, current ₹${Number(s?.price || 0).toFixed(2)}`;
@@ -1523,11 +1503,13 @@ Return ONLY valid JSON: {"sector": "Technology" (optional), "maxPrice": number (
 
       // Compute portfolio-level aggregate metrics
       try {
-        const portfolioMetrics = computePortfolioMetrics(user.portfolio, STOCKS_DATA);
+        const portfolioMetrics = computePortfolioMetrics(userPortfolio, STOCKS_DATA);
         portfolioContext += "\n" + formatPortfolioMetricsForPrompt(portfolioMetrics);
       } catch (e) {
         console.warn("[AI Context] Portfolio metrics computation failed:", e.message);
       }
+    } else {
+      portfolioContext = "\nUSER PORTFOLIO: No active holdings. The user currently has 0 stocks in their portfolio.";
     }
 
     // --- ENHANCED SYSTEM PROMPT PER CATEGORY ---
@@ -1535,17 +1517,21 @@ Return ONLY valid JSON: {"sector": "Technology" (optional), "maxPrice": number (
     if (queryCategory === "greeting") {
       categorySchema = `{"greeting": "One short sentence greeting, max 15 words", "next_actions": "One optional sentence offering 2-3 named next actions, not a data dump", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
     } else if (queryCategory === "single_stock") {
-      categorySchema = `{"verdict": "ticker, current price, one-word/short-phrase sentiment", "justification": "1-2 sentence justification citing specific data points", "indicators": [{"name": "Indicator Name", "value": "Value", "reading": "Reading"}], "conflict_note": "Optional 1 sentence noting any conflict between short/long term signals", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
+      categorySchema = `{"verdict": "ticker, current price, one-word/short-phrase sentiment", "explanation": "A good, brief explanation (3-4 sentences) analyzing the stock's performance, key drivers, and future outlook", "indicators": [{"name": "Indicator Name", "value": "Value", "reading": "Reading"}], "conflict_note": "Optional 1 sentence noting any conflict between short/long term signals", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
     } else if (queryCategory === "portfolio") {
-      categorySchema = `{"total_value": "Total value in ₹", "total_pnl": "Total P&L in ₹ and %", "holdings": [{"ticker": "SYM", "qty": 0, "avg_cost": 0, "last_price": 0, "pnl": "P&L"}], "insight": "Optional 1 sentence naming the single biggest gainer/loser if notable", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
+      categorySchema = `{"total_value": "Total value in ₹", "total_pnl": "Total P&L in ₹ and %", "holdings": [{"ticker": "SYM", "qty": 0, "avg_cost": 0, "last_price": 0, "pnl": "P&L"}], "explanation": "A good, brief explanation (3-4 sentences) summarizing portfolio performance and highlighting major gainers/losers", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
     } else if (queryCategory === "comparison") {
-      categorySchema = `{"subject": "One line stating what's being compared", "metrics": [{"name": "Metric Name", "tickerA": "Ticker A Value", "tickerB": "Ticker B Value"}], "takeaway": "1-2 sentence takeaway", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
+      categorySchema = `{"subject": "One line stating what's being compared", "metrics": [{"name": "Metric Name", "tickerA": "Ticker A Value", "tickerB": "Ticker B Value"}], "explanation": "A brief, clear explanation (3-4 sentences) summarizing the comparison takeaway and which option might be better based on the data", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
     } else if (queryCategory === "market") {
-      categorySchema = `{"news_synthesis": "1-2 sentence synthesis of the overall market picture", "news_bullets": ["Relevant headline 1 (flat string, no markdown bullets)", "Relevant headline 2"], "movers": [{"ticker": "SYM", "price": 0, "change_pct": 0, "direction": "UP/DOWN", "time_frame": "1D"}], "insight": "A mandatory Labh Sathi insight naming a specific checkable connection", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
+      categorySchema = `{"news_synthesis": "1-2 sentence synthesis of the overall market picture", "news_bullets": ["Relevant headline 1 (flat string, no markdown bullets)", "Relevant headline 2"], "movers": [{"ticker": "SYM", "price": 0, "change_pct": 0, "direction": "UP/DOWN", "time_frame": "1D"}], "explanation": "A detailed but brief explanation of the market situation, its causes, and potential impacts on investors, spanning 3-4 sentences", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
     } else if (queryCategory === "decision") {
       categorySchema = `{"observation": "State what data shows plainly", "disclaimer": "Explicit statement that you give data-backed observations not financial advice", "signal": "Specific conditional signal if one exists", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
     } else if (queryCategory === "screener") {
       categorySchema = `{"disambiguation": "Optional 1-2 sentences clarifying ambiguous terms (e.g. 'cheapest' = absolute price vs valuation) and warning that low price != good buy", "results": [{"ticker": "SYM", "price": 0, "metric": "Optional context metric"}], "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
+    } else if (queryCategory === "educational") {
+      categorySchema = `{"explanation": "Clear, step-by-step explanation answering the user's question about trading strategies or concepts", "example": "Optional 1-2 sentence practical example", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
+    } else if (queryCategory === "irrelevant") {
+      categorySchema = `{"reply": "Polite but firm message refusing to answer the non-financial question and steering the user back to the stock market.", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
     } else {
       categorySchema = `{"definition": "1-2 sentence plain-language definition", "context": "Optional context if relevant to user's holding", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
     }
@@ -1555,17 +1541,19 @@ CURRENT MARKET: ${marketContext}
 LATEST NEWS: ${newsContext}${portfolioContext}
 
 If the user provides an image (chart/document), analyze it for trends, patterns, or financial details.
+If the user asks about a chart concept (like moving averages, SMA, EMA, MACD, etc) without specifying a ticker, you MUST pull up an example chart. Do this by setting 'aiChart' to a JSON object like this: {"symbol": "AAPL", "indicators": [{"type": "sma", "period": 50, "color": "#f59e0b"}, {"type": "sma", "period": 200, "color": "#ef4444"}]}. If they specify a ticker, use that ticker instead.
 
 CRITICAL RULE: DO NOT use Markdown tables to draw heatmaps or comparisons in the 'reply' text. 
 You MUST respond with ONLY a valid JSON object matching this exact schema:
-${isChartRequest ? categorySchema.replace(/}$/, `, "aiChart": null, "chartConfig": null}`) : categorySchema}
+${isChartRequest ? categorySchema.replace(/}$/, `, "aiChart": {"symbol": "AAPL", "indicators": [{"type": "sma", "period": 50, "color": "#f59e0b"}]} }`) : categorySchema}
 
 RULES FOR YOUR RESPONSES:
 - NEVER refer to the user in the third person. Always use 'you' and 'your portfolio'.
 - NEVER give generic financial disclaimers (e.g., 'always monitor the market', 'do your own research').
-- Keep your tone clinical, sharp, and institutional.
+- Keep your tone simple, concise, and easy to understand for beginners. Do not sound like a professional institutional analyst.
 
 SAFETY RULES — MANDATORY:
+- OFF-TOPIC RULE: If the user's prompt is NOT about finance, trading, investing, or this app, you MUST politely refuse to answer. Do not provide coding help, math solutions, or general knowledge. Output your refusal in the main text field of your required JSON schema (e.g. 'reply' or 'definition' or 'greeting').
 - You never adopt urgency, all-in framing, or "act immediately" language that originates from the user's phrasing rather than from your own analysis of market conditions.
 - Never recommend allocating "all available cash" or a portfolio's full balance to a single position.
 
@@ -1757,6 +1745,8 @@ Format: { "reply": "detailed analysis text", "tradeSymbol": null, "scenarioImpac
       const screenerDetails = screenerMatchedTickers.length > 0 ? screenerMatchedTickers.map(t => `${t} (Price: ₹${STOCKS_DATA[t].price}, P/E: ${STOCKS_DATA[t].peRatio || "N/A"})`).join(", ") : "None";
       systemPrompt += `The user requested a market screen. The database matched these tickers: ${screenerDetails}. 
 ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdMsg}"` : ""}`;
+    } else if (queryCategory === "irrelevant") {
+      systemPrompt += `\nCRITICAL REQUIREMENT: The user asked an irrelevant question (e.g. coding, math, general knowledge) that has nothing to do with finance or the stock market. You MUST refuse to answer it. Output a "reply" field politely declining the question and steering the conversation back to trading/finance.`;
     } else {
       systemPrompt += `You must output a JSON object. The "reply" field MUST be a single Markdown-formatted string containing your conversational response and analysis. DO NOT use nested JSON objects inside "reply". The "tradeSymbol" field should be the stock ticker if they ask to buy/sell, or null. Example: {"reply": "Here is the analysis you requested:\\n\\n**Economic Impact**...", "tradeSymbol": null}`;
     }
@@ -1831,6 +1821,9 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
       
       // If Auto mode is active and the first model wasn't already Kimi, fallback to Kimi
       if ((!modelId || modelId === "auto") && !isMoonshot) {
+        if (isVision) {
+          return res.json({ reply: "I'm currently experiencing high traffic on my image analysis models. Please try uploading your image again in a few moments." });
+        }
         console.log(`[AI] Auto-fallback triggered: Retrying with Kimi k2.6...`);
         try {
           isMoonshot = true;
@@ -1898,7 +1891,8 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
       if (queryCategory === "greeting") {
         finalReply = `${parsed.greeting || ""}\n\n${parsed.next_actions || ""}`.trim();
       } else if (queryCategory === "single_stock") {
-        finalReply = `**${parsed.verdict || "Analysis"}**\n\n${parsed.justification || ""}\n\n`;
+        const textBody = parsed.explanation || parsed.justification || "";
+        finalReply = `**${parsed.verdict || "Analysis"}**\n\n${textBody}\n\n`;
         if (parsed.indicators && Array.isArray(parsed.indicators) && parsed.indicators.length > 0) {
           finalReply += `### Indicators\n| Indicator | Value | Reading |\n|---|---|---|\n`;
           parsed.indicators.forEach(ind => {
@@ -1941,8 +1935,9 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
             finalReply += `| **${h.ticker || ""}** | ${h.qty || ""} | ${h.avg_cost || ""} | ${h.last_price || ""} | ${pnlFormatted} | ${trendFormatted} |\n`;
           });
         }
-        if (parsed.insight) {
-          finalReply += `\n*${parsed.insight}*`;
+        const textBody = parsed.explanation || parsed.insight || "";
+        if (textBody) {
+          finalReply += `\n\n${textBody}`;
         }
       } else if (queryCategory === "comparison") {
         finalReply = `**${parsed.subject || "Comparison"}**\n\n`;
@@ -1952,7 +1947,8 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
             finalReply += `| **${m.name || ""}** | ${m.tickerA || ""} | ${m.tickerB || ""} |\n`;
           });
         }
-        if (parsed.takeaway) finalReply += `\n${parsed.takeaway}`;
+        const textBody = parsed.explanation || parsed.takeaway || "";
+        if (textBody) finalReply += `\n\n${textBody}`;
       } else if (queryCategory === "market") {
         if (parsed.news_synthesis) {
           finalReply += `${parsed.news_synthesis}\n\n`;
@@ -1979,11 +1975,12 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
             finalReply += `| **${m.ticker || ""}** | ₹${m.price || "-"} | <span style="color: ${trendColor}">${pct}%</span> | ${trend} | ${m.time_frame || "1D"} |\n`;
           });
         }
-        if (parsed.insight) finalReply += `\n*${parsed.insight}*`;
+        const textBody = parsed.explanation || parsed.insight || "";
+        if (textBody) finalReply += `\n\n${textBody}`;
       } else if (queryCategory === "decision") {
         finalReply = `${parsed.observation || ""}\n\n*${parsed.disclaimer || ""}*\n\n**${parsed.signal || ""}**`;
       } else if (queryCategory === "educational") {
-        finalReply = `${parsed.definition || ""}\n\n${parsed.context || ""}`;
+        finalReply = `${parsed.explanation || parsed.definition || ""}\n\n${parsed.example || parsed.context || ""}`;
       } else if (queryCategory === "screener") {
         if (parsed.disambiguation) finalReply += `${parsed.disambiguation}\n\n`;
         if (parsed.results && Array.isArray(parsed.results) && parsed.results.length > 0) {
@@ -2009,7 +2006,9 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
         scenarioImpact: parsed.scenarioImpact || null,
         journal: parsed.journal || null,
         isJournal: parsed.isJournal || false,
-        screenerResults: parsed.screenerResults || null
+        screenerResults: parsed.screenerResults || null,
+        thoughtTime: ((Date.now() - reqStartTime) / 1000).toFixed(1),
+        sources: usedSources.length > 0 ? usedSources : null
       });
     } else {
       // Final Fallback: The AI gave us something that failed all JSON parsing attempts.
@@ -2030,7 +2029,12 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
         }
       }
       
-      res.json({ reply: salvagedReply, tradeSymbol: null });
+      res.json({ 
+        reply: salvagedReply, 
+        tradeSymbol: null,
+        thoughtTime: ((Date.now() - reqStartTime) / 1000).toFixed(1),
+        sources: usedSources.length > 0 ? usedSources : null 
+      });
     }
   } catch (e) {
     console.error(e);
@@ -2133,7 +2137,7 @@ const RECOMMENDATION_CACHE_TTL = 300000; // 5 minutes
 app.get("/api/recommendations", async (req, res) => {
   try {
     const userId = req.query.userId;
-    const user = userId ? users.find((u) => u.id === userId) : null;
+    const { data: user } = userId ? await supabase.from("profiles").select("*").eq("id", userId).single() : { data: null };
     
     // Invalidate cache if user makes a new trade
     const tradeCount = user?.trades?.length || 0;

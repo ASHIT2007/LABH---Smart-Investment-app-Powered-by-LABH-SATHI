@@ -6,6 +6,13 @@ let marketData = [];
 let watchlist = JSON.parse(localStorage.getItem("labh_watchlist") || "[]");
 let marketSearchQuery = "";
 
+// Initialize default state for Supabase users who don't exist in the legacy backend
+if (currentUser) {
+  if (typeof currentUser.balance === 'undefined') currentUser.balance = 100000;
+  if (!currentUser.portfolio) currentUser.portfolio = [];
+  if (!currentUser.trades) currentUser.trades = [];
+}
+
 // Currency helper: everything is converted to ₹ now
 const cur = (stock) => "₹";
 
@@ -792,7 +799,9 @@ async function fetchMe() {
     setAuthUser(currentUser);
     updateDashboardUI();
   } catch (e) {
-    if (e.message === "Not found") logout();
+    if (e.message === "Not found") {
+      console.warn("User not found in legacy backend. Relying on Supabase session.");
+    }
   }
 }
 
@@ -811,6 +820,35 @@ async function fetchMarketsLoop() {
     marketData = await apiCall("/markets");
     window.marketData = marketData; // Expose globally for chat.js
     updateMarketsTable();
+
+    if (window.currentActiveStock && window.currentChartMainSeries && window.currentChartLastCandle) {
+      const activeMarket = marketData.find(m => m.sym === window.currentActiveStock);
+      if (activeMarket) {
+        let c = window.currentChartLastCandle;
+        const p = activeMarket.price;
+        
+        // Append new candle if time has moved into a new minute and price is updating
+        if (typeof c.time === 'number') {
+          const nowIST = Math.floor(Date.now() / 1000) + 19800;
+          const currentMinuteBlock = nowIST - (nowIST % 60);
+          
+          if (currentMinuteBlock > c.time && p !== c.close) {
+            c = { time: currentMinuteBlock, open: c.close, high: c.close, low: c.close, close: c.close };
+            window.currentChartLastCandle = c;
+          }
+        }
+
+        c.close = p;
+        if (p > c.high) c.high = p;
+        if (p < c.low) c.low = p;
+        
+        if (window.currentChartMode === 'line' || window.currentChartMode === 'area') {
+          window.currentChartMainSeries.update({ time: c.time, value: c.close });
+        } else {
+          window.currentChartMainSeries.update({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close });
+        }
+      }
+    }
   } catch (e) {
     console.error(e);
   }
@@ -1044,7 +1082,7 @@ function setupRoast() {
 
   btn.addEventListener("click", async () => {
     if (currentUser.portfolio.length === 0)
-      return alert("Your portfolio is empty. Nothing to roast!");
+      return showToast("Your portfolio is empty. Nothing to roast!", "error");
     btn.textContent = "Roasting...";
     try {
       const data = await apiCall("/roast", {
@@ -1060,7 +1098,7 @@ function setupRoast() {
         <p style="font-size:15px; line-height:1.6; margin-right: 30px;">${data.roastText}</p>
       `;
     } catch (e) {
-      alert("Roast failed: " + e.message);
+      showToast("Roast failed: " + e.message, "error");
     } finally {
       btn.innerHTML =
         '<span class="material-symbols-outlined" style="font-size: 20px;">local_fire_department</span> Roast My Portfolio';
@@ -1169,6 +1207,9 @@ async function loadChart(sym, range = "3mo", interval = "1d") {
     });
 
     if (candles.length > 0) {
+      window.currentChartLastCandle = candles[candles.length - 1];
+      window.currentChartMainSeries = mainSeries;
+
       if (window.currentChartMode === 'line' || window.currentChartMode === 'area') {
         mainSeries.setData(candles.map((c) => ({ time: c.time, value: c.close })));
       } else {
@@ -1350,27 +1391,64 @@ window.openStockDetail = async (sym) => {
     await loadChart(currentChartSymbol, range, interval);
   };
 
-  // Chart Maximize Toggle
+  // Chart Maximize Toggle / TradingView Overlay
+  let tvWidget = null;
   document.getElementById("chartMaximizeBtn").onclick = () => {
-    const panel = document.getElementById("chartPanel");
-    panel.classList.toggle("chart-maximized");
-    const icon = document.querySelector("#chartMaximizeBtn span");
-    icon.textContent = panel.classList.contains("chart-maximized")
-      ? "fullscreen_exit"
-      : "fullscreen";
+    const overlay = document.getElementById("tvFullscreenOverlay");
+    overlay.style.display = "flex";
+    
+    // Clean up existing widget if any
+    if (tvWidget) {
+      tvWidget.remove();
+      tvWidget = null;
+    }
 
-    // Resize chart after transition
-    setTimeout(() => {
-      if (currentChart) {
-        const container = document.getElementById("chartContainer");
-        currentChart.applyOptions({
-          width: container.clientWidth,
-          height: container.clientHeight,
-        });
-        currentChart.timeScale().fitContent();
-      }
-    }, 300); // Wait longer for full flex transition explicitly
+    const theme = document.body.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    
+    // TradingView Advanced Chart Widget
+    tvWidget = new TradingView.widget({
+      "autosize": true,
+      "symbol": currentChartSymbol || "NASDAQ:AAPL",
+      "interval": "D",
+      "timezone": "Etc/UTC",
+      "theme": theme,
+      "style": "1",
+      "locale": "en",
+      "enable_publishing": false,
+      "backgroundColor": theme === 'dark' ? "#12141c" : "#ffffff",
+      "gridColor": theme === 'dark' ? "#1e222d" : "#e0e3eb",
+      "hide_top_toolbar": false,
+      "hide_legend": false,
+      "save_image": false,
+      "container_id": "tv_chart_container",
+      "toolbar_bg": theme === 'dark' ? "#12141c" : "#f1f3f6",
+      "studies": [
+        "Volume@tv-basicstudies"
+      ]
+    });
   };
+
+  document.getElementById("closeTvFullscreenBtn").onclick = () => {
+    document.getElementById("tvFullscreenOverlay").style.display = "none";
+    if (tvWidget) {
+      tvWidget.remove();
+      tvWidget = null;
+    }
+  };
+
+  const fsBuyBtn = document.getElementById("fsBuyBtn");
+  if (fsBuyBtn) {
+    fsBuyBtn.onclick = () => {
+      openTradeModal(currentChartSymbol, "BUY");
+    };
+  }
+
+  const fsSellBtn = document.getElementById("fsSellBtn");
+  if (fsSellBtn) {
+    fsSellBtn.onclick = () => {
+      openTradeModal(currentChartSymbol, "SELL");
+    };
+  }
 
   // Deterministic Mock Data Generation for Tabs
   const seed = sym.split("").reduce((a, b) => a + b.charCodeAt(0), 0);
@@ -1824,7 +1902,7 @@ window.openTradeModal = (ticker, initialSide = "BUY") => {
 
   confirmBtn.onclick = async () => {
     const qty = parseInt(qtyInput.value);
-    if (isNaN(qty) || qty <= 0) return alert("Please enter valid quantity");
+    if (isNaN(qty) || qty <= 0) return showToast("Please enter valid quantity", "error");
 
     const orderType = typeSelect.value;
     const triggerPrice = orderType === "SL" ? parseFloat(document.getElementById("tradeTrigger").value) : null;
@@ -1833,18 +1911,46 @@ window.openTradeModal = (ticker, initialSide = "BUY") => {
       confirmBtn.textContent = orderType === "SL" ? "SETTING SL TRIGGER..." : "EXECUTING ORDER...";
       confirmBtn.disabled = true;
 
-      // ACTUAL LIVE API CALL TO BACKEND
-      const res = await apiCall("/trade", {
-        method: "POST",
-        body: JSON.stringify({
-          userId: currentUser.id,
-          type: currentSide,
-          ticker: ticker,
-          quantity: qty,
-          orderType: orderType, // MARKET, LIMIT, or SL
-          triggerPrice: triggerPrice
-        }),
-      });
+      let res;
+      try {
+        // ACTUAL LIVE API CALL TO BACKEND
+        res = await apiCall("/trade", {
+          method: "POST",
+          body: JSON.stringify({
+            userId: currentUser.id,
+            type: currentSide,
+            ticker: ticker,
+            quantity: qty,
+            orderType: orderType, // MARKET, LIMIT, or SL
+            triggerPrice: triggerPrice
+          }),
+        });
+      } catch(err) {
+        // Fallback local execution for Supabase users not in legacy DB
+        if (currentSide === "BUY") {
+            const cost = qty * stock.price;
+            if (currentUser.balance < cost) throw new Error("Insufficient Funds");
+            currentUser.balance -= cost;
+            const existing = currentUser.portfolio.find(p => p.ticker === ticker);
+            if (existing) {
+                const totalCost = (existing.qty * existing.avgPrice) + cost;
+                existing.qty += qty;
+                existing.avgPrice = totalCost / existing.qty;
+            } else {
+                currentUser.portfolio.push({ ticker, qty, avgPrice: stock.price });
+            }
+        } else {
+            const existing = currentUser.portfolio.find(p => p.ticker === ticker);
+            if (!existing || existing.qty < qty) throw new Error("Insufficient Quantity");
+            existing.qty -= qty;
+            currentUser.balance += qty * stock.price;
+            if (existing.qty === 0) {
+                currentUser.portfolio = currentUser.portfolio.filter(p => p.ticker !== ticker);
+            }
+        }
+        currentUser.trades.push({ ticker, type: currentSide, qty, price: stock.price, total: stock.price * qty, date: new Date().toISOString() });
+        res = { user: currentUser };
+      }
 
       // Update local user state immediately
       currentUser = res.user;
@@ -1935,7 +2041,7 @@ window.openTradeModal = (ticker, initialSide = "BUY") => {
       }
 
     } catch (e) {
-      alert("Trade Error: " + e.message);
+      showToast("Trade Error: " + e.message, "error");
     } finally {
       confirmBtn.disabled = false;
     }
@@ -2082,7 +2188,7 @@ function renderRecCard(pick) {
     : `<div class="rec-stock-logo-fallback">${pick.sym.substring(0, 2)}</div>`;
 
   return `
-    <div class="rec-card fade-in">
+    <div class="rec-card fade-in" onclick="window.openStockDetail('${pick.sym}')" style="cursor: pointer;">
       <div class="rec-card-header">
         <div class="rec-stock-info">
           ${logoHTML}
@@ -2234,6 +2340,7 @@ function renderReports() {
     } else {
       detailedLogBody.innerHTML = trades.slice().reverse().map(t => {
         const dateStr = t.date ? new Date(t.date).toLocaleString("en-IN") : "N/A";
+        const tradeTotal = t.total || (t.qty * t.price) || 0;
         return `
           <tr>
             <td style="font-size: 11px; font-family: var(--font-mono);">${dateStr}</td>
@@ -2241,7 +2348,7 @@ function renderReports() {
             <td><span class="badge ${t.type === 'BUY' ? 'badge-buy' : 'badge-sell'}">${t.type}</span></td>
             <td>${t.qty}</td>
             <td>₹${t.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            <td style="font-family: var(--font-mono);">₹${t.total.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td style="font-family: var(--font-mono);">₹${tradeTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
           </tr>
         `;
       }).join("");
@@ -2256,9 +2363,10 @@ function renderReports() {
   // Simple FIFO-ish Realized P&L calculation
   trades.forEach(t => {
     if (t.type === 'BUY') {
+      const tradeTotal = t.total || (t.qty * t.price) || 0;
       if (!holdingsForPL[t.ticker]) holdingsForPL[t.ticker] = { qty: 0, totalCost: 0 };
       holdingsForPL[t.ticker].qty += t.qty;
-      holdingsForPL[t.ticker].totalCost += t.total;
+      holdingsForPL[t.ticker].totalCost += tradeTotal;
     } else {
       const h = holdingsForPL[t.ticker];
       if (h && h.qty > 0) {
@@ -2917,9 +3025,13 @@ window.saveProfile = async () => {
         }
     } catch (err) {
         console.error("Failed to save profile:", err);
-        alert(err.message || "Failed to save profile.");
+        showToast(err.message || "Failed to save profile.", "error");
     } finally {
         saveBtn.textContent = originalText;
         saveBtn.disabled = false;
     }
 };
+
+/* =========================================================
+ * LIVE TV WIDGET LOGIC MOVED TO js/tv-widget.js
+ * ========================================================= */

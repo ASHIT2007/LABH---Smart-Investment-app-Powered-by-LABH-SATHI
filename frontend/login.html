@@ -1,134 +1,175 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Labh Authentication</title>
-    <link rel="stylesheet" href="css/style.css" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
-      rel="stylesheet"
-    />
-  </head>
-
-  <body>
-    <div class="auth-bg"></div>
-    <div class="auth-container">
-      <div class="auth-card">
-        <!-- Header -->
-        <div class="auth-header">
-          <div class="logo-container">
-            <img
-              src="img/logo.png"
-              alt="Labh Logo"
-              style="
-                width: 48px;
-                height: 48px;
-                object-fit: contain;
-                filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.3));
-              "
-              onerror="
-                this.outerHTML = `<svg width='48' height='48' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg' style='filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.3));'><path d='M 25 15 L 40 15 L 40 35 L 25 50 L 40 65 L 40 75 L 65 75 L 65 90 L 25 90 Z' fill='#22c55e' stroke='#22c55e' stroke-width='8' stroke-linejoin='round'/><path d='M 65 10 L 52 50 L 85 38' fill='none' stroke='#22c55e' stroke-width='14' stroke-linecap='round' stroke-linejoin='round'/></svg>`
-              "
-            />
-            <h1 class="logo-text">Labh</h1>
-          </div>
-          <p class="auth-subtitle">Trade smarter with Vibe AI</p>
-        </div>
-
-        <!-- Tabs -->
-        <div class="tabs-container" id="authTabs">
-          <div class="tab-indicator" id="tabIdx"></div>
-          <button class="tab-btn active" id="loginTabBtn">Sign In</button>
-          <button class="tab-btn" id="regTabBtn">Register</button>
-        </div>
-
-        <!-- Forms -->
-        <form id="authForm">
-          <div id="regFields" class="hidden">
-            <div class="input-group fade-in">
-              <label class="input-label">Full Name</label>
-              <input
-                class="input-field"
-                type="text"
-                id="regName"
-                placeholder="Enter your full name"
-              />
-            </div>
-            <div class="input-group fade-in">
-              <label class="input-label">Experience Level</label>
-              <select class="input-field" id="regLevel">
-                <option value="Beginner" style="background: #141414">
-                  Beginner — new to trading
-                </option>
-                <option value="Advanced" style="background: #141414">
-                  Advanced — seasoned trader
-                </option>
-              </select>
-            </div>
-          </div>
-
-          <div class="input-group">
-            <label class="input-label">Email Address</label>
-            <input
-              class="input-field"
-              type="email"
-              id="email"
-              required
-              placeholder="name@example.com"
-              value="demo@labh.com"
-            />
-          </div>
-
-          <div class="input-group">
-            <label class="input-label">Password</label>
-            <input
-              class="input-field"
-              type="password"
-              id="password"
-              required
-              placeholder="Enter your password"
-              value="password"
-            />
-          </div>
-
-          <div
-            id="authError"
-            style="
-              color: var(--danger);
-              font-size: 13px;
-              text-align: center;
-              margin-bottom: 10px;
-            "
-          ></div>
-
-          <button type="submit" class="submit-btn" id="submitBtn">
-            Sign In
-          </button>
-        </form>
-
-        <div
-          class="warning-footer"
-          style="display: flex; align-items: flex-start; gap: 8px"
-        >
-          <span
-            class="material-symbols-outlined"
-            style="font-size: 20px; color: var(--gold)"
-            >warning</span
-          >
-          <span
-            >Educational platform for learning stock market concepts.
-            <strong>No real trading or money involved.</strong></span
-          >
-        </div>
-      </div>
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Labh - Login</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                    },
+                    colors: {
+                        labhGreen: "#00a846", 
+                        labhGreenBorder: "#008a39",
+                        labhGreenHover: "#00963e",
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #ffffff; }
+        
+        /* Precision focus outlines */
+        input:focus { outline: none; box-shadow: none !important; border-color: #ffffff !important; }
+        input.error-border { border-color: #ff4444 !important; }
+        input.error-border:focus { border-color: #ff4444 !important; }
+        
+        button:focus-visible { outline: 1px solid #ffffff; outline-offset: 2px; }
+        
+        /* Custom checkbox */
+        input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 14px; height: 14px; border: 1px solid #333; border-radius: 3px; background: #111; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+        input[type="checkbox"]:checked { background: #00a846; border-color: #00a846; }
+        input[type="checkbox"]:checked::after { content: ""; width: 8px; height: 8px; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3L4.5 8.5L2 6" stroke="%23fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center; background-size: contain; }
+        
+        /* Slideshow Background */
+        .slideshow-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background-color: #0a0a0a;
+        }
+        .slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            opacity: 0; animation: fade 18s infinite ease-in-out;
+        }
+        .slide:nth-child(1) { background-image: url('img/finance_bg_1.png'); animation-delay: 0s; }
+        .slide:nth-child(2) { background-image: url('img/finance_bg_2.png'); animation-delay: 6s; }
+        .slide:nth-child(3) { background-image: url('img/finance_bg_3.png'); animation-delay: 12s; }
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 10, 0.75);
+        }
+        @keyframes fade {
+            0% { opacity: 0; transform: scale(1); }
+            10% { opacity: 0.4; }
+            33% { opacity: 0.4; }
+            43% { opacity: 0; transform: scale(1.05); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+    </style>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative z-0">
+    
+    <!-- Slideshow Background -->
+    <div class="slideshow-bg">
+        <div class="slide"></div>
+        <div class="slide"></div>
+        <div class="slide"></div>
+        <div class="overlay"></div>
     </div>
 
-    <script src="js/auth.js" type="module"></script>
-  </body>
-  <html></html>
+    <!-- Flat, precise card container -->
+    <div class="relative bg-[#111111] w-full max-w-[400px] rounded-xl px-8 pt-12 pb-8 sm:px-10 sm:pt-14 sm:pb-10 border border-[#333333]">
+        
+        <!-- Upper Left Logo -->
+        <div class="absolute top-6 left-6 flex items-center gap-2.5">
+            <img alt="Labh Logo" class="w-7 h-7 object-contain" src="img/logo.png" onerror="this.outerHTML = `<svg width='28' height='28' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M 25 15 L 40 15 L 40 35 L 25 50 L 40 65 L 40 75 L 65 75 L 65 90 L 25 90 Z' fill='#00C853'/></svg>`"/>
+            <span class="text-white font-bold text-base tracking-tight">Labh</span>
+        </div>
+
+        <!-- Header Hierarchy -->
+        <div class="flex flex-col items-center text-center mb-8 mt-2">
+            <!-- Circular Profile Avatar -->
+            <div class="relative w-16 h-16 rounded-full p-0.5 border border-[#333333] bg-[#0a0a0a] flex items-center justify-center shadow-sm mb-4">
+                <img id="userAvatar" alt="User Avatar" class="w-full h-full rounded-full object-cover" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%23555' viewBox='0 0 24 24'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" />
+            </div>
+            <h1 id="formTitle" class="text-xl font-bold tracking-tight text-white">Log in to Labh</h1>
+            <p id="formSubtitle" class="text-[13px] text-[#a1a1aa] mt-1.5">Enter your details below to continue.</p>
+        </div>
+
+        <!-- Form -->
+        <form id="authForm" class="space-y-4" novalidate>
+            <!-- Registration Name -->
+            <div id="regFields" class="hidden flex-col">
+                <label class="block text-[13px] font-medium text-[#a1a1aa] mb-1.5" for="regName">Full Name</label>
+                <input class="w-full bg-[#0a0a0a] border border-[#333333] rounded-md py-2 px-3 text-[14px] text-white placeholder-[#555555] transition-colors" id="regName" placeholder="Full Name" type="text"/>
+                <p id="nameError" class="hidden text-[#ff4444] text-[12px] mt-1.5 font-medium"></p>
+            </div>
+
+            <!-- Email -->
+            <div class="flex flex-col">
+                <label class="block text-[13px] font-medium text-[#a1a1aa] mb-1.5" for="email">Email Address</label>
+                <input class="w-full bg-[#0a0a0a] border border-[#333333] rounded-md py-2 px-3 text-[14px] text-white placeholder-[#555555] transition-colors" id="email" placeholder="name@example.com" type="email"/>
+                <p id="emailError" class="hidden text-[#ff4444] text-[12px] mt-1.5 font-medium"></p>
+            </div>
+
+            <!-- Password -->
+            <div class="flex flex-col">
+                <label class="block text-[13px] font-medium text-[#a1a1aa] mb-1.5" for="password">Password</label>
+                <input class="w-full bg-[#0a0a0a] border border-[#333333] rounded-md py-2 px-3 text-[14px] text-white placeholder-[#555555] transition-colors" id="password" placeholder="••••••••" type="password"/>
+                <p id="passwordError" class="hidden text-[#ff4444] text-[12px] mt-1.5 font-medium"></p>
+            </div>
+
+            <!-- Remember Me & Forgot Password -->
+            <div class="flex items-center justify-between pt-1">
+                <label class="flex items-center gap-2 text-[13px] text-[#a1a1aa] cursor-pointer hover:text-white transition-colors">
+                    <input type="checkbox" id="rememberMe" />
+                    Remember me
+                </label>
+                <a id="forgotPwdContainer" class="text-[13px] text-[#a1a1aa] hover:text-white transition-colors" href="#">Forgot password?</a>
+            </div>
+            
+            <!-- Global Form Error -->
+            <div id="authError" class="hidden text-[#ff4444] text-[13px] text-center font-medium mt-2"></div>
+
+            <!-- Primary Action -->
+            <div class="pt-2">
+                <button id="submitBtn" class="w-full bg-labhGreen hover:bg-labhGreenHover border border-labhGreenBorder text-white text-[14px] font-medium rounded-md h-10 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
+                    <span id="btnText">Sign In</span>
+                </button>
+            </div>
+        </form>
+
+
+
+        <!-- Mode Toggle -->
+        <div class="mt-8 text-center text-[13px] text-[#a1a1aa]">
+            <span id="toggleText">Don't have an account?</span> 
+            <a id="switchModeBtn" class="text-white hover:underline decoration-[#555] hover:decoration-white transition-all ml-1" href="#">Sign up</a>
+        </div>
+
+    </div>
+
+    <!-- Hidden elements required by auth.js -->
+    <div class="hidden">
+        <button id="themeToggle"></button>
+        <span id="themeIcon"></span>
+        <div id="authSuccess"></div>
+    </div>
+
+<script>
+    // Dynamic Avatar Logic
+    const emailInput = document.getElementById('email');
+    const userAvatar = document.getElementById('userAvatar');
+    const defaultAvatarSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%23555' viewBox='0 0 24 24'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>`;
+
+    emailInput.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        if (val.includes('@') && val.split('@')[0].length > 0) {
+            const prefix = val.split('@')[0];
+            userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(prefix)}&background=00a846&color=fff&rounded=true&size=128&bold=true`;
+        } else {
+            userAvatar.src = defaultAvatarSvg;
+        }
+    });
+</script>
+<script src="js/auth.js" type="module"></script>
+</body>
 </html>

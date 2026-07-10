@@ -489,6 +489,17 @@
         letter-spacing: 0.1em;
         text-transform: uppercase;
       }
+      .globe-loader-fact {
+        color: #888888;
+        font-size: 11px;
+        margin-top: 16px;
+        max-width: 320px;
+        text-align: center;
+        line-height: 1.5;
+        font-style: italic;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
       @keyframes globe-spin {
         to {
           transform: rotate(360deg);
@@ -500,6 +511,56 @@
     <div id="globe-loader">
       <div class="globe-spinner"></div>
       <div class="globe-loader-text">Initializing Globe...</div>
+      <div class="globe-loader-fact" id="globeLoaderFact"></div>
+      <script>
+        (function() {
+          const facts = [
+            "The Bombay Stock Exchange (BSE) is the oldest stock exchange in Asia, established in 1875 under a banyan tree.",
+            "The National Stock Exchange (NSE) was the first exchange in India to provide a fully automated screen-based electronic trading system.",
+            "The Dutch East India Company issued the world's first modern stock in 1602.",
+            "India's stock market capitalization is among the top 5 globally.",
+            "A 'bull market' gets its name from how a bull attacks—thrusting its horns upward.",
+            "A 'bear market' is named after how a bear attacks—swiping its paws downward.",
+            "The word 'rupee' comes from the Sanskrit word 'Rupya', meaning silver coin.",
+            "Wall Street is actually named after a physical wall built by Dutch colonists to defend New Amsterdam.",
+            "Over 7,000 companies are listed on the BSE, making it the exchange with the largest number of listed companies in the world.",
+            "Warren Buffett bought his first stock at age 11 and later said he felt he had started too late.",
+            "Sensex, the benchmark index of BSE, was first compiled in 1986.",
+            "NIFTY is a portmanteau of two words: 'National' and 'Fifty'."
+          ];
+          
+          // Shuffle facts so it's unique every time
+          for (let i = facts.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [facts[i], facts[j]] = [facts[j], facts[i]];
+          }
+
+          const factEl = document.getElementById("globeLoaderFact");
+          let currentFactIdx = 0;
+          let factInterval;
+          
+          function showNextFact() {
+            const loader = document.getElementById("globe-loader");
+            if (!factEl || !loader) return;
+            
+            // Stop polling once the globe-loader fades out
+            if (loader.style.opacity === '0' || getComputedStyle(loader).display === 'none') {
+                clearInterval(factInterval);
+                return;
+            }
+            
+            factEl.style.opacity = 0;
+            setTimeout(() => {
+              factEl.innerHTML = `<span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; margin-right: 4px; color: #fbc02d;">lightbulb</span> Fun Fact: ${facts[currentFactIdx]}`;
+              factEl.style.opacity = 1;
+              currentFactIdx = (currentFactIdx + 1) % facts.length;
+            }, 500);
+          }
+          
+          showNextFact();
+          factInterval = setInterval(showNextFact, 3500);
+        })();
+      </script>
     </div>
     <div class="hud">
       World Finance & Threat Globe <span id="zone-count-badge" class="zone-count"></span>
@@ -581,14 +642,24 @@
         
         <div class="chat-container">
             <div id="chatMessages" class="chat-history-view">
-                <div class="msg-ai-wrap">
-                    <div class="msg-content-ai" style="padding-top: 10px;">
-                        <h3 style="margin-bottom: 8px; font-weight: 500; font-size: 16px;">Hello. I'm Labh Sathi.</h3>
-                        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Welcome to SimulaEarth! Click on any threat or market pulse on the globe, and I will analyze it for you.</p>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button class="chip-btn" onclick="document.getElementById('chatInput').value='What are the biggest current geopolitical threats?'; document.getElementById('chatSend').click();">Global threats</button>
-                            <button class="chip-btn" onclick="document.getElementById('chatInput').value='How are Asian markets performing today?'; document.getElementById('chatSend').click();">Asian markets</button>
-                        </div>
+                <div class="msg-ai-wrap" style="width: 100%; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 20px; padding: 40px 20px; background: transparent; border: none; margin: 20px auto 0 auto;">
+                    <div>
+                        <h3 style="margin-bottom: 12px; font-weight: 700; font-size: 26px; font-family: var(--font-head); background: linear-gradient(90deg, #fff, #8b949e); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Hello, I'm Labh Sathi</h3>
+                        <p style="color: var(--text-muted); font-size: 15px; max-width: 340px; margin: 0 auto; line-height: 1.5;">Your personal AI financial analyst. How can I assist your trades today?</p>
+                    </div>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; max-width: 480px; margin: 0 auto;">
+                        <button class="chip-btn" style="display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13.5px;" onclick="document.getElementById('chatInput').value='Review my portfolio'; document.getElementById('chatSend').click();">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #60a5fa;">pie_chart</span> Review Portfolio
+                        </button>
+                        <button class="chip-btn" style="display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13.5px;" onclick="document.getElementById('chatInput').value='Market outlook'; document.getElementById('chatSend').click();">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #4ade80;">trending_up</span> Market Outlook
+                        </button>
+                        <button class="chip-btn" style="display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13.5px;" onclick="document.getElementById('chatInput').value='Top gaining stocks today'; document.getElementById('chatSend').click();">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #fbbf24;">local_fire_department</span> Trending Stocks
+                        </button>
+                        <button class="chip-btn" style="display: flex; align-items: center; gap: 6px; padding: 12px 18px; font-size: 13.5px;" onclick="document.getElementById('chatInput').value='Any important market news?'; document.getElementById('chatSend').click();">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #f87171;">newspaper</span> Latest News
+                        </button>
                     </div>
                 </div>
             </div>
@@ -614,6 +685,46 @@
 
     <!-- Init Chat -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Live TV Floating Widget -->
+    <div id="liveTvWidget" class="live-tv-widget hidden">
+        <div class="live-tv-header" id="liveTvHeader" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-outlined" style="font-size: 16px; color: var(--text);">tv</span>
+                    <select id="liveTvChannelSelect" class="live-tv-select">
+                        <option value="QB5BNdBFujE">Bloomberg TV</option>
+                        <option value="XWq5kBlakcQ">CNA 24/7</option>
+                        <option value="LuKwFajn37U">DW News</option>
+                        <option value="0ek9wWOznP0">Sky News</option>
+                        <option value="3SqlmoG8CWU">Zee Business</option>
+                        <option value="6SJNB5Y-YJI">ET Now</option>
+                        <option value="HIrOi1QWp3c">NDTV Profit</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <button id="liveTvVolumeBtn" title="Unmute" class="live-tv-btn">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">volume_off</span>
+                    </button>
+                    <button id="liveTvMinimizeBtn" title="Minimize/Maximize" class="live-tv-btn">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">keyboard_arrow_down</span>
+                    </button>
+                    <button id="liveTvCloseBtn" title="Close" class="live-tv-btn">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                    </button>
+                </div>
+            </div>
+            <div id="liveTvStatus" style="font-size: 10px; color: var(--text-muted); margin-left: 24px; display: flex; align-items: center; gap: 4px;">
+                <span class="material-symbols-outlined" style="font-size: 10px; color: #ef4444;">circle</span> Live
+            </div>
+        </div>
+        <div class="live-tv-body" id="liveTvBody">
+            <div class="live-tv-crop">
+                <div id="liveTvPlayer"></div>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
       import { setupChat } from "../js/chat.js";
       document.addEventListener("DOMContentLoaded", () => {
@@ -1188,5 +1299,7 @@
 
       boot();
     </script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="../js/tv-widget.js"></script>
   </body>
 </html>
