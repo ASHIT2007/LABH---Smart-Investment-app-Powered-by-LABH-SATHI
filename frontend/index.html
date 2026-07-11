@@ -1290,6 +1290,22 @@
                 <div id="commodityModalYesterday" style="font-size: 28px; font-weight: 700; font-family: var(--font-mono); color: var(--text);">₹0.00</div>
             </div>
         </div>
+        <div id="commodityChartSection">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-family: var(--font-head); font-size: 20px;">Price History</h3>
+                <div style="display: flex; gap: 8px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 12px; border: 1px solid var(--border-subtle);">
+                    <button class="chart-time-btn active" onclick="window.fetchCommodityChart('1d', this)">1D</button>
+                    <button class="chart-time-btn" onclick="window.fetchCommodityChart('1mo', this)">1M</button>
+                    <button class="chart-time-btn" onclick="window.fetchCommodityChart('1y', this)">1Y</button>
+                </div>
+            </div>
+            <div id="commodityModalChart" style="width: 100%; height: 250px; margin-bottom: 32px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--card-inset); position: relative;">
+                <div id="commodityChartLoader" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); z-index: 10;">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <h3 id="commodityModalTableTitle" style="font-family: var(--font-head); font-size: 20px;">Rate breakdown</h3>
@@ -1470,6 +1486,6 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="js/tv-widget.js"></script>
 <script src="js/settings.js"></script>
-<script src="js/app.js" type="module"></script>
+<script src="js/app.js?v=7" type="module"></script>
 </body>
 </html>

@@ -90,6 +90,22 @@ app.put("/api/auth/profile", async (req, res) => {
   res.json({ user: updatedUser });
 });
 
+app.post("/api/sync-portfolio", async (req, res) => {
+  const { id, balance, portfolio, trades } = req.body;
+  if (!id) return res.status(400).json({ error: "No ID provided" });
+  
+  const { data: user } = await supabase.from("profiles").select("*").eq("id", id).single();
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const updates = {};
+  if (typeof balance === 'number') updates.balance = balance;
+  if (Array.isArray(portfolio)) updates.portfolio = portfolio;
+  if (Array.isArray(trades)) updates.trades = trades;
+
+  const { data: updatedUser } = await supabase.from("profiles").update(updates).eq("id", id).select().single();
+  res.json({ user: updatedUser });
+});
+
 // Markets Route
 app.get("/api/markets", (req, res) => {
   res.json(Object.values(STOCKS_DATA));
@@ -999,9 +1015,11 @@ app.get("/api/chart/:symbol", async (req, res) => {
     const range = req.query.range || "3mo";
     const interval = req.query.interval || "1d";
     const stockData = STOCKS_DATA[symbol];
-    const isIntl = stockData && stockData.intl === true;
+    const isCommodity = COMMODITIES_DATA[symbol];
+    const isBenchmark = BENCHMARKS_DATA[symbol];
+    const isIntl = (stockData && stockData.intl === true) || isCommodity || isBenchmark || symbol.includes('=') || symbol.startsWith('^');
     const yahooSymbol = isIntl ? symbol : `${symbol}.NS`;
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=${interval}&range=${range}`;
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?interval=${interval}&range=${range}`;
 
     const response = await fetch(url, {
       headers: {
@@ -1149,12 +1167,26 @@ let pricesLoaded = false;
 app.post("/api/trade", async (req, res) => {
   if (!pricesLoaded) return res.status(503).json({ error: "Market data is still loading. Please try again in a few seconds." });
 
-  const { userId, type, ticker, quantity } = req.body;
+  const { userId, type, ticker, quantity, price } = req.body;
   const { data: user } = await supabase.from("profiles").select("*").eq("id", userId).single();
   if (!user) return res.status(404).json({ error: "User not found" });
 
-  const stock = STOCKS_DATA[ticker];
-  if (!stock) return res.status(400).json({ error: "Invalid stock" });
+  let stock = STOCKS_DATA[ticker];
+  if (!stock) {
+    if (!price) return res.status(400).json({ error: "Invalid stock and no price provided" });
+    stock = { 
+      sym: ticker, 
+      name: ticker, 
+      price: parseFloat(price), 
+      intl: true, 
+      change: 0, 
+      changePct: 0,
+      week52High: parseFloat(price) * 1.1,
+      week52Low: parseFloat(price) * 0.9,
+      volume: "N/A"
+    };
+    STOCKS_DATA[ticker] = stock;
+  }
 
   const qty = parseInt(quantity, 10);
   if (isNaN(qty) || qty <= 0)
@@ -1188,6 +1220,7 @@ app.post("/api/trade", async (req, res) => {
 
   const totalCost = stock.price * qty;
 
+  user.portfolio = user.portfolio || [];
   user.trades = user.trades || [];
   const executionDate = new Date().toISOString();
 

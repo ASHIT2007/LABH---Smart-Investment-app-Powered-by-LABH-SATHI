@@ -270,12 +270,12 @@
 
         background: linear-gradient(
           160deg,
-          rgba(24, 32, 52, 0.72),
-          rgba(16, 21, 36, 0.62)
+          rgba(40, 40, 45, 0.85),
+          rgba(20, 20, 25, 0.75)
         );
-        border: 1px solid rgba(154, 176, 255, 0.22);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 14px;
-        box-shadow: 0 14px 36px rgba(4, 8, 20, 0.55);
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65);
         backdrop-filter: blur(14px) saturate(135%);
         -webkit-backdrop-filter: blur(14px) saturate(135%);
         padding: 11px 12px;
@@ -568,6 +568,7 @@
         Loading live Yahoo quotes + Groq headlines…
       </div>
       <div id="globe-model-info" class="hud-model"></div>
+      <button id="addCustomZoneBtn" class="chip-btn" style="margin-top: 8px; font-size: 10px; padding: 4px 8px; border-color: rgba(255,255,255,0.2);">+ Add Custom Zone</button>
     </div>
 
     <a href="../index.html" class="exit-button" title="Back to Dashboard">
@@ -586,6 +587,57 @@
     <div class="globe-legend" id="globe-legend"></div>
     <div id="globe-viz"></div>
     <div id="threat-tooltip" aria-hidden="true"></div>
+
+    <!-- Zone Detail Panel (Drill Down) -->
+    <div id="zoneDetailPanel" class="zone-detail-panel hidden">
+      <div class="zone-detail-header">
+        <div>
+          <div id="zdTitle" class="zone-detail-title">Zone Name</div>
+          <div id="zdTheme" class="zone-detail-theme">Theme</div>
+        </div>
+        <button class="zone-detail-close" onclick="document.getElementById('zoneDetailPanel').classList.add('hidden')"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="zone-detail-body">
+        
+        <div class="zone-detail-section">
+          <div class="zone-detail-section-title"><span class="material-symbols-outlined" style="font-size: 14px;">monitoring</span> Live Basket Performance</div>
+          <div id="zdStockList" class="zone-stock-list"></div>
+        </div>
+
+        <div id="zdHistSection" class="zone-detail-section hidden">
+          <div class="zone-detail-section-title"><span class="material-symbols-outlined" style="font-size: 14px;">history</span> Historical Correlation</div>
+          <div class="zone-hist-box">
+            <div id="zdHistVal" class="zone-hist-val">+0.0%</div>
+            <div id="zdHistDesc" class="zone-hist-desc">Average move 5 days post-event</div>
+          </div>
+        </div>
+
+        <div class="zone-detail-section">
+          <div class="zone-detail-section-title"><span class="material-symbols-outlined" style="font-size: 14px;">article</span> Real News Sources</div>
+          <div id="zdNewsList" class="zone-news-list"></div>
+        </div>
+
+        <button id="zdAlertBtn" class="zone-alert-btn"><span class="material-symbols-outlined">notifications</span> Set Alert (>2% Move)</button>
+
+      </div>
+    </div>
+
+    <!-- Custom Zone Modal -->
+    <div id="modalOverlay" class="modal-overlay"></div>
+    <div id="customZoneModal" class="custom-zone-modal">
+      <h3 style="margin-bottom: 12px; font-size: 16px;">Add Custom Zone</h3>
+      <input type="text" id="czName" class="custom-zone-input" placeholder="Zone Name (e.g. Taiwan)">
+      <input type="text" id="czTheme" class="custom-zone-input" placeholder="Theme (e.g. Chip Supply)">
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="czLat" class="custom-zone-input" placeholder="Lat (e.g. 23.5)">
+        <input type="text" id="czLng" class="custom-zone-input" placeholder="Lng (e.g. 121.0)">
+      </div>
+      <input type="text" id="czTickers" class="custom-zone-input" placeholder="Tickers (comma separated, e.g. TSM, UMC)">
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;">
+        <button class="chip-btn" id="czCancelBtn">Cancel</button>
+        <button class="chip-btn" id="czSaveBtn" style="background: rgba(34, 197, 94, 0.2); border-color: #4ade80;">Save Zone</button>
+      </div>
+    </div>
 
     <!-- Floating AI Widget -->
     <div id="aiWidgetBubble" class="ai-bubble card-hover" style="z-index: 9999;"></div>
@@ -889,6 +941,7 @@
       }
 
       function mergePulseWithCentroids(pulseData) {
+        if (!pulseData || !Array.isArray(pulseData.pulse)) return [];
         return pulseData.pulse
           .map((p) => {
             const centroid = countryCentroids[p.countryCode];
@@ -1006,22 +1059,23 @@
                   duration: 1.0
                });
                
-               var prompt = "";
                if (d.type === "threat") {
-                 var drop = d.topStocks && d.topStocks[0] ? d.topStocks[0].stockDrop : 0;
-                 var company = d.topStocks && d.topStocks[0] ? d.topStocks[0].name : "the region";
-                 prompt = "Analyze the live market threat in " + d.regionLabel + " (" + d.threatName + ") regarding " + company + " with a " + drop + "% impact.";
+                 openZoneDetailPanel(d);
                } else {
-                 prompt = "Give me a quick analysis of the market pulse in " + d.name + ". The index " + d.indexTicker + " is at " + d.change + "%.";
-               }
-               if (window.askSathi) {
-                 window.askSathi(prompt);
+                 var prompt = "Give me a quick analysis of the market pulse in " + d.name + ". The index " + d.indexTicker + " is at " + d.change + "%.";
+                 if (window.askSathi) {
+                   window.askSathi(prompt);
+                 }
                }
              });
 
              markersContainer.appendChild(el);
              return { el: el, lat: d.lat, lng: d.lng, d: d };
            });
+
+           if (typeof renderStaticMarkers === 'function') {
+               renderStaticMarkers();
+           }
         }
         
         renderMarkers(combinedData);
@@ -1071,7 +1125,7 @@
               el.addEventListener('click', function() {
                 stopAutoRotate();
                 viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(ex.lng, ex.lat, 500000), duration: 1.0 });
-                if (window.askSathi) window.askSathi('Tell me about ' + ex.name + ' (' + ex.abbr + ') in ' + ex.city + '. What is its market cap, trading volume, and significance?');
+                if (window.askSathi) window.askSathi('Tell me about ' + ex.name + ' (' + ex.abbr + ') in ' + ex.city + '. What is its global significance, history, and what are some of the top companies listed on it? Do NOT fetch stock-specific financial indicators like market cap or trading volume for the exchange itself, as it is a marketplace.');
               });
               markersContainer.appendChild(el);
               cesiumMarkers.push({ el: el, lat: ex.lat, lng: ex.lng, d: ex });
@@ -1102,8 +1156,6 @@
               cesiumMarkers.push({ el: el, lat: plant.lat, lng: plant.lng, d: plant });
            });
         }
-
-        renderStaticMarkers();
 
         window._renderMarkers = renderMarkers;
 
@@ -1239,67 +1291,587 @@
         moveTooltip(evt);
       }
 
-      async function boot() {
+      // --- Drill Down Panel & Alert Logic ---
+      function openZoneDetailPanel(zone) {
+        document.getElementById('zoneDetailPanel').classList.remove('hidden');
+        document.getElementById('zdTitle').textContent = zone.threatName || zone.regionLabel || 'Zone';
+        document.getElementById('zdTheme').textContent = zone.riskCategory ? zone.riskCategory.toUpperCase() : 'CUSTOM';
+        
+        // Stocks
+        const slist = document.getElementById('zdStockList');
+        slist.innerHTML = '';
+        if (zone.topStocks && zone.topStocks.length > 0) {
+          zone.topStocks.forEach(s => {
+            const v = Number(s.liveChangePercent || s.stockDrop);
+            const down = Number.isFinite(v) && v < 0;
+            const up = Number.isFinite(v) && v > 0;
+            const cls = down ? "tt-drop--down" : up ? "tt-drop--up" : "";
+            const pxStr = s.price ? `@ ${s.price.toFixed(2)}${s.currency ? ' ' + s.currency : ''}` : '';
+            slist.innerHTML += `
+              <div class="zone-stock-item" style="cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'" onclick="if(window.openTradingViewModal) window.openTradingViewModal('${escapeHtml(s.ticker)}', '${escapeHtml(s.name || s.ticker).replace(/'/g, "\\'")}', '${s.price}', '${v}', '${s.currency || ''}')">
+                <div class="zone-stock-info">
+                  <span class="zone-stock-tick">${escapeHtml(s.ticker)}</span>
+                  <span class="zone-stock-name">${escapeHtml(s.name || '')} ${pxStr}</span>
+                </div>
+                <div class="tt-drop ${cls}">${formatDrop(v)}</div>
+              </div>
+            `;
+          });
+        } else {
+          slist.innerHTML = '<div style="font-size:12px; color:#888;">No tickers available.</div>';
+        }
+
+        // Historical
+        const hSec = document.getElementById('zdHistSection');
+        if (zone.historicalCorrelation) {
+          hSec.classList.remove('hidden');
+          const hm = zone.historicalCorrelation.movePct;
+          const hc = hm < 0 ? "#ef4444" : hm > 0 ? "#4ade80" : "#fff";
+          document.getElementById('zdHistVal').textContent = (hm > 0 ? '+' : '') + hm.toFixed(2) + '%';
+          document.getElementById('zdHistVal').style.color = hc;
+          document.getElementById('zdHistDesc').textContent = `Average 5-day move following "${zone.historicalCorrelation.event}" (${zone.historicalCorrelation.date})`;
+        } else {
+          hSec.classList.add('hidden');
+        }
+
+        // News
+        const nlist = document.getElementById('zdNewsList');
+        nlist.innerHTML = '';
+        const newsArr = zone.actualNews || [];
+        if (newsArr.length > 0) {
+          newsArr.forEach(n => {
+            nlist.innerHTML += `<div class="zone-news-item">${escapeHtml(n)}</div>`;
+          });
+        } else if (zone.newsHeadline) {
+           nlist.innerHTML = `<div class="zone-news-item">${escapeHtml(zone.newsHeadline)}</div>`;
+        } else {
+           nlist.innerHTML = '<div style="font-size:12px; color:#888;">No recent news found.</div>';
+        }
+
+        // Actions
+        const alertBtn = document.getElementById('zdAlertBtn');
+        const alertKey = 'alert_' + (zone.id || zone.threatName);
+        if (localStorage.getItem(alertKey)) {
+          alertBtn.classList.add('active');
+          alertBtn.innerHTML = '<span class="material-symbols-outlined">notifications_active</span> Alert Set';
+        } else {
+          alertBtn.classList.remove('active');
+          alertBtn.innerHTML = '<span class="material-symbols-outlined">notifications</span> Set Alert (>2% Move)';
+        }
+        alertBtn.onclick = function() {
+          if (alertBtn.classList.contains('active')) {
+            localStorage.removeItem(alertKey);
+            alertBtn.classList.remove('active');
+            alertBtn.innerHTML = '<span class="material-symbols-outlined">notifications</span> Set Alert (>2% Move)';
+          } else {
+            localStorage.setItem(alertKey, 'true');
+            alertBtn.classList.add('active');
+            alertBtn.innerHTML = '<span class="material-symbols-outlined">notifications_active</span> Alert Set';
+          }
+        };
+
+        // Attach extra feature listeners if not already attached
+        let aiBtn = document.getElementById('zdAiBtn');
+        let watchBtn = document.getElementById('zdWatchBtn');
+        if (!aiBtn) {
+          const btnRow = document.createElement('div');
+          btnRow.style.display = 'flex';
+          btnRow.style.gap = '8px';
+          btnRow.style.marginTop = '10px';
+          
+          aiBtn = document.createElement('button');
+          aiBtn.id = 'zdAiBtn';
+          aiBtn.className = 'zone-alert-btn';
+          aiBtn.style.flex = '1';
+          aiBtn.innerHTML = '<img src="../img/logo.png" style="width: 16px; height: 16px; border-radius: 50%;"> Ask Labh Sathi';
+          
+          watchBtn = document.createElement('button');
+          watchBtn.id = 'zdWatchBtn';
+          watchBtn.className = 'zone-alert-btn';
+          watchBtn.style.flex = '1';
+          watchBtn.innerHTML = '<span class="material-symbols-outlined">playlist_add</span> Watchlist';
+          
+          btnRow.appendChild(aiBtn);
+          btnRow.appendChild(watchBtn);
+          alertBtn.parentNode.appendChild(btnRow);
+        }
+        
+        aiBtn.onclick = function() {
+          const drop = zone.topStocks && zone.topStocks[0] ? zone.topStocks[0].stockDrop : 0;
+          const company = zone.topStocks && zone.topStocks[0] ? zone.topStocks[0].name : "the region";
+          const prompt = "Analyze the live market threat in " + zone.regionLabel + " (" + zone.threatName + ") regarding " + company + " with a " + drop + "% impact.";
+          
+          // Hide the detail panel so the AI chat isn't obscured
+          document.getElementById('zoneDetailPanel').classList.add('hidden');
+          
+          if (window.askSathi) window.askSathi(prompt);
+        };
+
+        watchBtn.onclick = function() {
+          const wlKey = 'wl_' + (zone.id || zone.threatName);
+          if (localStorage.getItem(wlKey)) {
+            localStorage.removeItem(wlKey);
+            watchBtn.innerHTML = '<span class="material-symbols-outlined">playlist_add</span> Watchlist';
+            watchBtn.style.color = '#fff';
+          } else {
+            localStorage.setItem(wlKey, 'true');
+            watchBtn.innerHTML = '<span class="material-symbols-outlined">playlist_add_check</span> Added';
+            watchBtn.style.color = '#4ade80';
+          }
+        };
+
+        const wlKey = 'wl_' + (zone.id || zone.threatName);
+        if (localStorage.getItem(wlKey)) {
+          watchBtn.innerHTML = '<span class="material-symbols-outlined">playlist_add_check</span> Added';
+          watchBtn.style.color = '#4ade80';
+        } else {
+          watchBtn.innerHTML = '<span class="material-symbols-outlined">playlist_add</span> Watchlist';
+          watchBtn.style.color = '#fff';
+        }
+      }
+
+      // --- Custom Zone Logic ---
+      function getCustomZones() {
+        try {
+          return JSON.parse(localStorage.getItem('globeCustomZones_v1') || '[]');
+        } catch { return []; }
+      }
+      function saveCustomZone(z) {
+        const zones = getCustomZones();
+        zones.push(z);
+        localStorage.setItem('globeCustomZones_v1', JSON.stringify(zones));
+      }
+
+      document.getElementById('addCustomZoneBtn').addEventListener('click', () => {
+        document.getElementById('modalOverlay').classList.add('visible');
+        document.getElementById('customZoneModal').classList.add('visible');
+      });
+      document.getElementById('czCancelBtn').addEventListener('click', () => {
+        document.getElementById('modalOverlay').classList.remove('visible');
+        document.getElementById('customZoneModal').classList.remove('visible');
+      });
+      document.getElementById('czSaveBtn').addEventListener('click', () => {
+        const name = document.getElementById('czName').value.trim();
+        const theme = document.getElementById('czTheme').value.trim();
+        const lat = parseFloat(document.getElementById('czLat').value);
+        const lng = parseFloat(document.getElementById('czLng').value);
+        const tickers = document.getElementById('czTickers').value.split(',').map(t=>t.trim()).filter(Boolean);
+        
+        if (!name || isNaN(lat) || isNaN(lng)) return alert('Name, Lat, and Lng required.');
+        
+        const newZone = {
+          id: 'custom_' + Date.now(),
+          lat, lng,
+          regionLabel: name,
+          threatName: name,
+          riskCategory: theme || 'custom',
+          topStocks: tickers.map(t => ({ ticker: t, stockDrop: 0, liveChangePercent: 0, price: null })),
+          type: "threat"
+        };
+        
+        saveCustomZone(newZone);
+        
+        document.getElementById('czName').value = '';
+        document.getElementById('czTheme').value = '';
+        document.getElementById('czLat').value = '';
+        document.getElementById('czLng').value = '';
+        document.getElementById('czTickers').value = '';
+        document.getElementById('modalOverlay').classList.remove('visible');
+        document.getElementById('customZoneModal').classList.remove('visible');
+        
+        // Trigger refresh
+        boot(true);
+      });
+
+      async function boot(skipInit = false) {
         const statusEl = document.getElementById("globe-live-status");
         let baseStatus = "";
 
+        // Immediately mount globe so user isn't stuck waiting for the API
+        if (!skipInit) {
+          try {
+            await mountGlobe();
+          } catch(e) {
+            console.error("Globe init error", e);
+            const loader = document.getElementById("globe-loader");
+            if (loader) {
+              loader.style.opacity = "0";
+              loader.style.visibility = "hidden";
+            }
+          }
+        }
+
         try {
-          statusEl.textContent = "Loading market data…";
+          if (statusEl) statusEl.textContent = "Loading market data…";
           // 1. Load threat zones + market pulse
           const [threatData, pulseData] = await Promise.all([
-            fetchThreatZones(),
-            fetchMarketPulse(),
+            fetchThreatZones().catch(() => ({ zones: [], arcs: [] })),
+            fetchMarketPulse().catch(() => ({ pulse: [] })),
           ]);
 
           threatZones = threatData.zones || [];
+          
+          // Merge custom zones
+          const customZones = getCustomZones();
+          if (customZones.length > 0) {
+            threatZones = [...threatZones, ...customZones];
+          }
+
           riskArcs = threatData.arcs || [];
           marketPulse = pulseData;
           aiPoweredGlobal = threatData.aiPowered;
 
           // Update HUD badges
-          document.getElementById("zone-count-badge").textContent = threatZones.length + " zones";
+          const badge = document.getElementById("zone-count-badge");
+          if (badge) badge.textContent = threatZones.length + " zones";
+
           const modelInfo = document.getElementById("globe-model-info");
-          if (threatData.model && threatData.model !== "fallback") {
+          if (modelInfo && threatData.model && threatData.model !== "fallback") {
             modelInfo.textContent = "AI Model: " + threatData.model;
           }
 
           baseStatus = `Global Market Pulse: Live · Tickers: ${pulseData.pulse?.length || 0}`;
-          statusEl.textContent = baseStatus;
+          if (statusEl) statusEl.textContent = baseStatus;
 
-          await mountGlobe(); // This will use centroids
+          const combinedData = [
+            ...threatZones.map((z) => ({ ...z, type: "threat" })),
+            ...mergePulseWithCentroids(marketPulse),
+          ];
+          
+          if (window._renderMarkers) window._renderMarkers(combinedData);
+          if (typeof renderLegend === "function") renderLegend();
 
           // Final border visuals
-          statusEl.textContent = baseStatus + " · 3D Tiles Loaded";
+          if (statusEl) statusEl.textContent = baseStatus + " · 3D Tiles Loaded";
         } catch (e) {
           console.error(e);
-          statusEl.textContent = "Failed to load live globe data.";
+          if (statusEl) statusEl.textContent = "Failed to load live globe data.";
         }
 
         // Refresh every 2 minutes
-        setInterval(async () => {
-          try {
-            const [threatData, pulseData] = await Promise.all([
-              fetchThreatZones(),
-              fetchMarketPulse(),
-            ]);
-            threatZones = threatData.zones || [];
-            marketPulse = pulseData;
+        if (!skipInit) {
+          setInterval(async () => {
+            try {
+              const [threatData, pulseData] = await Promise.all([
+                fetchThreatZones(),
+                fetchMarketPulse(),
+              ]);
+              threatZones = threatData.zones || [];
+              const customZones = getCustomZones();
+              if (customZones.length > 0) {
+                threatZones = [...threatZones, ...customZones];
+              }
+              marketPulse = pulseData;
 
-            const combinedData = [
-              ...threatZones.map((z) => ({ ...z, type: "threat" })),
-              ...mergePulseWithCentroids(marketPulse),
-            ];
-            
-            if (window._renderMarkers) window._renderMarkers(combinedData);
-          } catch (err) {
-            console.warn("Refresh failed", err);
-          }
-        }, 120000);
+              const combinedData = [
+                ...threatZones.map((z) => ({ ...z, type: "threat" })),
+                ...mergePulseWithCentroids(marketPulse),
+              ];
+              
+              if (window._renderMarkers) window._renderMarkers(combinedData);
+            } catch (err) {
+              console.warn("Refresh failed", err);
+            }
+          }, 120000);
+        }
       }
 
       boot();
+
+        const fxRates = { USD: 83.5, EUR: 89.5, GBP: 105.0, CAD: 61.5, MXN: 4.9, CNY: 11.5, JPY: 0.55, KRW: 0.06, AUD: 55.0, BRL: 16.5, ZAR: 4.4 };
+
+        window.openGlobeTradeModal = function(side, ticker, price, currency) {
+          let modal = document.getElementById('globeTradeModal');
+          if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'globeTradeModal';
+            modal.style.display = 'none';
+            modal.style.position = 'fixed';
+            modal.style.top = '50%';
+            modal.style.left = '50%';
+            modal.style.transform = 'translate(-50%,-50%)';
+            modal.style.zIndex = '100000';
+            modal.style.background = '#1e222d';
+            modal.style.padding = '24px';
+            modal.style.borderRadius = '12px';
+            modal.style.border = '1px solid #2b313f';
+            modal.style.color = 'white';
+            modal.style.flexDirection = 'column';
+            modal.style.gap = '16px';
+            modal.style.boxShadow = '0 20px 60px rgba(0,0,0,0.9)';
+            modal.style.width = '320px';
+            
+            modal.innerHTML = `
+              <h3 id="gtmTitle" style="margin:0; font-size:20px; font-weight:700;">Trade</h3>
+              <div style="display:flex; justify-content:space-between; font-size:14px; color:#a0a0a0;">
+                 <span>Live Price (INR converted):</span>
+                 <span id="gtmPrice" style="color:#fff; font-family:monospace; font-weight:600;">0.00</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:12px; color:#a0a0a0; margin-top:-8px;">
+                 <span>Total Cost:</span>
+                 <span id="gtmTotal" style="color:#22c55e; font-family:monospace; font-weight:600;">0.00</span>
+              </div>
+              <div>
+                 <label style="display:block; margin-bottom:8px; font-size:12px; color:#a0a0a0; text-transform:uppercase; letter-spacing:0.5px;">Quantity</label>
+                 <input type="number" id="gtmQty" value="1" min="1" style="width:100%; box-sizing:border-box; padding:10px 12px; background:#12141c; border:1px solid #2b313f; color:white; border-radius:6px; outline:none; font-size:16px;">
+              </div>
+              <div style="display:flex; gap:12px; margin-top:8px;">
+                 <button onclick="document.getElementById('globeTradeModal').style.display='none'" style="flex:1; padding:12px; background:transparent; border:1px solid #2b313f; color:white; border-radius:6px; cursor:pointer; font-weight:600; transition:0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Cancel</button>
+                 <button id="gtmConfirm" style="flex:1; padding:12px; background:#22c55e; border:none; color:white; border-radius:6px; cursor:pointer; font-weight:bold; transition:0.2s; box-shadow:0 4px 12px rgba(34,197,94,0.3);" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">Confirm</button>
+              </div>
+            `;
+            document.body.appendChild(modal);
+          }
+          
+          let tradePrice = Number(price) || 0;
+          let tradeCurr = (currency || 'USD').toUpperCase();
+          if (tradeCurr !== 'INR') {
+              const rate = fxRates[tradeCurr] || 83.5;
+              tradePrice = tradePrice * rate;
+          }
+          
+          const title = document.getElementById('gtmTitle');
+          const priceDisplay = document.getElementById('gtmPrice');
+          const totalDisplay = document.getElementById('gtmTotal');
+          const confirmBtn = document.getElementById('gtmConfirm');
+          const qtyInput = document.getElementById('gtmQty');
+          
+          title.textContent = side + ' ' + ticker;
+          priceDisplay.textContent = '₹' + tradePrice.toFixed(2);
+          qtyInput.value = 1;
+          totalDisplay.textContent = '₹' + tradePrice.toFixed(2);
+          
+          qtyInput.oninput = () => {
+              const q = parseInt(qtyInput.value) || 0;
+              totalDisplay.textContent = '₹' + (tradePrice * q).toFixed(2);
+          };
+          
+          if (side === 'BUY') {
+            confirmBtn.style.background = '#22c55e';
+            confirmBtn.style.boxShadow = '0 4px 12px rgba(34,197,94,0.3)';
+            confirmBtn.textContent = 'Place Buy Order';
+            totalDisplay.style.color = '#22c55e';
+          } else {
+            confirmBtn.style.background = '#ef4444';
+            confirmBtn.style.boxShadow = '0 4px 12px rgba(239,68,68,0.3)';
+            confirmBtn.textContent = 'Place Sell Order';
+            totalDisplay.style.color = '#ef4444';
+          }
+          
+          confirmBtn.onclick = function() {
+            const qty = parseInt(qtyInput.value) || 1;
+            const userStr = localStorage.getItem("labh_user") || localStorage.getItem("labhsathi_user") || localStorage.getItem("user");
+            
+            if (!userStr) {
+                alert("Please log in first to trade.");
+                return;
+            }
+            
+            const btnOrigText = confirmBtn.textContent;
+            confirmBtn.textContent = "Processing...";
+            confirmBtn.style.opacity = '0.7';
+            confirmBtn.style.pointerEvents = 'none';
+            
+            setTimeout(async () => {
+                confirmBtn.textContent = btnOrigText;
+                confirmBtn.style.opacity = '1';
+                confirmBtn.style.pointerEvents = 'auto';
+                
+                try {
+                    const user = JSON.parse(userStr);
+                    const cost = qty * tradePrice;
+                    
+                    if (!user.portfolio) user.portfolio = [];
+                    if (!user.trades) user.trades = [];
+                    if (typeof user.balance !== 'number') user.balance = 100000;
+                    
+                    if (side === 'BUY') {
+                        if (user.balance < cost) {
+                            alert("Insufficient Funds!");
+                            return;
+                        }
+                        user.balance -= cost;
+                        const existing = user.portfolio.find(p => p.ticker === ticker);
+                        if (existing) {
+                            const totalCost = (existing.qty * existing.avgPrice) + cost;
+                            existing.qty += qty;
+                            existing.avgPrice = totalCost / existing.qty;
+                        } else {
+                            user.portfolio.push({ ticker, qty, avgPrice: tradePrice });
+                        }
+                    } else {
+                        const existing = user.portfolio.find(p => p.ticker === ticker);
+                        if (!existing || existing.qty < qty) {
+                            alert("Insufficient Quantity!");
+                            return;
+                        }
+                        existing.qty -= qty;
+                        user.balance += cost;
+                        if (existing.qty === 0) {
+                            user.portfolio = user.portfolio.filter(p => p.ticker !== ticker);
+                        }
+                    }
+                    
+                    user.trades.push({ ticker, type: side, qty, price: tradePrice, total: cost, date: new Date().toISOString() });
+                    
+                    // Call backend FIRST to ensure it completes before user exits
+                        const res = await fetch('/api/sync-portfolio', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ 
+                              id: user.id, 
+                              balance: user.balance, 
+                              portfolio: user.portfolio, 
+                              trades: user.trades 
+                          })
+                        });
+                        
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            throw new Error(errData.error || res.statusText);
+                        }
+                        
+                        localStorage.setItem("labh_user", JSON.stringify(user));
+                        localStorage.setItem("labhsathi_user", JSON.stringify(user));
+                        
+                        modal.style.display = 'none';
+                        
+                        // Show a quick success toast
+                        const toast = document.createElement('div');
+                        toast.style.position = 'fixed';
+                    toast.style.bottom = '24px';
+                    toast.style.left = '50%';
+                    toast.style.transform = 'translateX(-50%)';
+                    toast.style.background = '#10b981';
+                    toast.style.color = 'white';
+                    toast.style.padding = '12px 24px';
+                    toast.style.borderRadius = '30px';
+                    toast.style.fontWeight = '600';
+                    toast.style.zIndex = '999999';
+                    toast.style.boxShadow = '0 10px 30px rgba(16,185,129,0.4)';
+                    toast.textContent = `Successfully placed ${side} order for ${qty}x ${ticker}`;
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                      toast.style.opacity = '0';
+                      toast.style.transition = 'opacity 0.5s ease';
+                      setTimeout(() => toast.remove(), 500);
+                    }, 3000);
+                    
+                } catch(e) {
+                    confirmBtn.textContent = btnOrigText;
+                    confirmBtn.style.opacity = '1';
+                    confirmBtn.style.pointerEvents = 'auto';
+                    console.error("Trade failed:", e);
+                    alert("Trade failed: " + e.message);
+                }
+            }, 50);
+          };
+          
+          modal.style.display = 'flex';
+        };
+
+      // --- TradingView Modal Logic ---
+      window.openTradingViewModal = function(ticker, name, price, changePercent, currency) {
+        let overlay = document.getElementById('tvFullscreenOverlay');
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.id = 'tvFullscreenOverlay';
+          overlay.style.position = 'fixed';
+          overlay.style.top = '0';
+          overlay.style.left = '0';
+          overlay.style.width = '100vw';
+          overlay.style.height = '100vh';
+          overlay.style.zIndex = '99999';
+          overlay.style.background = '#12141c';
+          overlay.style.display = 'flex';
+          overlay.style.flexDirection = 'column';
+          
+          overlay.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#1e222d; border-bottom:1px solid #2b313f;">
+              <div style="display:flex; gap:12px; align-items:center;">
+                <h2 style="color:#fff; margin:0; font-size:16px;" id="tvModalTitle">Live Chart</h2>
+                <div style="display:flex; gap:8px; margin-left:16px;">
+                  <button id="tvOverlayBuyBtn" style="background:#22c55e; color:white; border:none; padding:6px 20px; font-weight:600; border-radius:6px; cursor:pointer;">BUY</button>
+                  <button id="tvOverlaySellBtn" style="background:#ef4444; color:white; border:none; padding:6px 20px; font-weight:600; border-radius:6px; cursor:pointer;">SELL</button>
+                </div>
+                <div id="tvModalPrice" style="margin-left:16px; font-size:1.1rem; font-weight:600; font-family:monospace; color:#fff;"></div>
+              </div>
+              <button id="closeTvFullscreenBtn" style="background:none; border:none; color:#fff; cursor:pointer; display:flex; align-items:center; gap:4px;"><span class="material-symbols-outlined">close</span> Close</button>
+            </div>
+            <div id="tv_chart_container" style="flex:1;"></div>
+          `;
+          document.body.appendChild(overlay);
+
+          document.getElementById('closeTvFullscreenBtn').onclick = () => {
+            overlay.style.display = 'none';
+            if (window.tvWidget) {
+              window.tvWidget.remove();
+              window.tvWidget = null;
+            }
+            document.getElementById('tv_chart_container').innerHTML = ''; // prevent DOM build up
+          };
+        }
+        
+        overlay.style.display = 'flex';
+        
+        document.getElementById('tvOverlayBuyBtn').onclick = () => window.openGlobeTradeModal('BUY', ticker, price, currency);
+        document.getElementById('tvOverlaySellBtn').onclick = () => window.openGlobeTradeModal('SELL', ticker, price, currency);
+        
+        let prefix = "";
+        let dispCurr = currency || 'USD';
+        if (dispCurr === 'USD') prefix = "$";
+        else if (dispCurr === 'INR') prefix = "₹";
+        else if (dispCurr === 'EUR') prefix = "€";
+        else if (dispCurr === 'GBP') prefix = "£";
+        
+        // Update Title & Price
+        document.getElementById('tvModalTitle').textContent = (name || ticker) + " (" + ticker + ")";
+        const px = Number(price);
+        const chg = Number(changePercent);
+        let pxStr = "";
+        if (!isNaN(px) && !isNaN(chg) && px > 0) {
+            const color = chg < 0 ? '#ef4444' : chg > 0 ? '#4ade80' : '#fff';
+            const sign = chg > 0 ? '+' : '';
+            pxStr = `${prefix}${px.toFixed(2)}${prefix ? "" : (dispCurr ? " " + dispCurr : "")} <span style="color:${color}; font-size:0.9rem; margin-left:8px;">${sign}${chg.toFixed(2)}%</span>`;
+        }
+        document.getElementById('tvModalPrice').innerHTML = pxStr;
+        
+        if (window.tvWidget) {
+          window.tvWidget.remove();
+          window.tvWidget = null;
+        }
+        document.getElementById('tv_chart_container').innerHTML = '';
+        
+        // Ensure TradingView is loaded
+        if (typeof TradingView !== 'undefined') {
+          setTimeout(() => {
+              window.tvWidget = new TradingView.widget({
+                "autosize": true,
+                "symbol": ticker,
+                "interval": "D",
+                "timezone": "Etc/UTC",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "enable_publishing": false,
+                "backgroundColor": "#12141c",
+                "gridColor": "#1e222d",
+                "hide_top_toolbar": false,
+                "hide_legend": false,
+                "save_image": false,
+                "container_id": "tv_chart_container",
+                "toolbar_bg": "#12141c",
+                "studies": [
+                  "Volume@tv-basicstudies"
+                ]
+              });
+          }, 50); // slight delay to prevent render lag 
+        }
+      };
     </script>
     <script src="https://www.youtube.com/iframe_api"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="../js/tv-widget.js"></script>
   </body>
 </html>

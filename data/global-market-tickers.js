@@ -6,7 +6,7 @@
 export const GLOBAL_MARKET_TICKERS = {
   // North America
   US: {
-    ticker: "SPY",
+    ticker: "^GSPC",
     name: "S&P 500 (USA)",
     topStocks: [
       { ticker: "AAPL", name: "Apple" },
@@ -16,17 +16,17 @@ export const GLOBAL_MARKET_TICKERS = {
     ],
   },
   CA: {
-    ticker: "EWC",
-    name: "MSCI Canada",
+    ticker: "^GSPTSE",
+    name: "S&P/TSX Composite",
     topStocks: [
-      { ticker: "RY", name: "Royal Bank of Canada" },
-      { ticker: "TD", name: "Toronto-Dominion Bank" },
-      { ticker: "SHOP", name: "Shopify" },
+      { ticker: "RY.TO", name: "Royal Bank of Canada" },
+      { ticker: "TD.TO", name: "Toronto-Dominion Bank" },
+      { ticker: "SHOP.TO", name: "Shopify" },
     ],
   },
   MX: {
-    ticker: "EWW",
-    name: "MSCI Mexico",
+    ticker: "^MXX",
+    name: "IPC Mexico",
     topStocks: [
       { ticker: "AMX", name: "América Móvil" },
       { ticker: "WALMEX.MX", name: "Walmart de México" },
@@ -36,8 +36,8 @@ export const GLOBAL_MARKET_TICKERS = {
 
   // Europe
   GB: {
-    ticker: "EWU",
-    name: "MSCI UK",
+    ticker: "^FTSE",
+    name: "FTSE 100",
     topStocks: [
       { ticker: "SHEL.L", name: "Shell" },
       { ticker: "HSBA.L", name: "HSBC Holdings" },
@@ -45,37 +45,37 @@ export const GLOBAL_MARKET_TICKERS = {
     ],
   },
   DE: {
-    ticker: "EWG",
-    name: "MSCI Germany",
+    ticker: "^GDAXI",
+    name: "DAX",
     topStocks: [
-      { ticker: "SAP", name: "SAP SE" },
+      { ticker: "SAP.DE", name: "SAP SE" },
       { ticker: "SIE.DE", name: "Siemens" },
       { ticker: "VOW3.DE", name: "Volkswagen" },
     ],
   },
   FR: {
-    ticker: "EWQ",
-    name: "MSCI France",
+    ticker: "^FCHI",
+    name: "CAC 40",
     topStocks: [
-      { ticker: "LVMUY", name: "LVMH" },
+      { ticker: "MC.PA", name: "LVMH" },
       { ticker: "OR.PA", name: "L'Oréal" },
-      { ticker: "TTE", name: "TotalEnergies" },
+      { ticker: "TTE.PA", name: "TotalEnergies" },
     ],
   },
   IT: {
-    ticker: "EWI",
-    name: "MSCI Italy",
+    ticker: "FTSEMIB.MI",
+    name: "FTSE MIB",
     topStocks: [
       { ticker: "ENI.MI", name: "Eni" },
-      { ticker: "RACE", name: "Ferrari" },
+      { ticker: "RACE.MI", name: "Ferrari" },
       { ticker: "ISP.MI", name: "Intesa Sanpaolo" },
     ],
   },
 
   // Asia-Pacific
   IN: {
-    ticker: "INDA",
-    name: "MSCI India",
+    ticker: "^NSEI",
+    name: "NIFTY 50",
     topStocks: [
       { ticker: "RELIANCE.NS", name: "Reliance Industries" },
       { ticker: "TCS.NS", name: "TCS" },
@@ -83,50 +83,50 @@ export const GLOBAL_MARKET_TICKERS = {
     ],
   },
   CN: {
-    ticker: "FXI",
-    name: "FTSE China 50",
+    ticker: "000001.SS",
+    name: "SSE Composite",
     topStocks: [
-      { ticker: "TCEHY", name: "Tencent" },
-      { ticker: "BABA", name: "Alibaba" },
+      { ticker: "0700.HK", name: "Tencent" },
+      { ticker: "9988.HK", name: "Alibaba" },
       { ticker: "3690.HK", name: "Meituan" },
     ],
   },
   JP: {
-    ticker: "EWJ",
-    name: "MSCI Japan",
+    ticker: "^N225",
+    name: "Nikkei 225",
     topStocks: [
-      { ticker: "TM", name: "Toyota" },
-      { ticker: "SONY", name: "Sony" },
-      { ticker: "6758.T", name: "Keyence" },
+      { ticker: "7203.T", name: "Toyota" },
+      { ticker: "6758.T", name: "Sony" },
+      { ticker: "6861.T", name: "Keyence" },
     ],
   },
   KR: {
-    ticker: "EWY",
-    name: "MSCI South Korea",
+    ticker: "^KS11",
+    name: "KOSPI",
     topStocks: [
       { ticker: "005930.KS", name: "Samsung Electronics" },
       { ticker: "000660.KS", name: "SK Hynix" },
     ],
   },
   AU: {
-    ticker: "EWA",
-    name: "MSCI Australia",
+    ticker: "^AXJO",
+    name: "S&P/ASX 200",
     topStocks: [
-      { ticker: "BHP", name: "BHP Group" },
+      { ticker: "BHP.AX", name: "BHP Group" },
       { ticker: "CBA.AX", name: "Commonwealth Bank" },
     ],
   },
   BR: {
-    ticker: "EWZ",
-    name: "MSCI Brazil",
+    ticker: "^BVSP",
+    name: "IBOVESPA",
     topStocks: [
-      { ticker: "PBR", name: "Petrobras" },
-      { ticker: "VALE", name: "Vale" },
+      { ticker: "PETR4.SA", name: "Petrobras" },
+      { ticker: "VALE3.SA", name: "Vale" },
     ],
   },
   ZA: {
-    ticker: "EZA",
-    name: "MSCI South Africa",
+    ticker: "^J203.JO",
+    name: "FTSE/JSE All Share",
     topStocks: [
       { ticker: "NPN.JO", name: "Naspers" },
       { ticker: "FSR.JO", name: "FirstRand" },

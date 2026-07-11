@@ -3061,12 +3061,104 @@ window.openCommodityModal = (sym) => {
 
     document.getElementById("commodityModal").classList.remove("hidden");
     document.getElementById("commodityModal").style.display = "flex";
+
+    const chartSection = document.getElementById("commodityChartSection");
+    if (chartSection) {
+        if (c.sym === 'GC=F' || c.sym === 'SI=F') {
+            chartSection.style.display = "block";
+            window.fetchCommodityChart('1d');
+        } else {
+            chartSection.style.display = "none";
+        }
+    }
+};
+
+window.fetchCommodityChart = async (range = '1mo', btnEl = null) => {
+    if (!window.currentOpenCommodity) return;
+    const sym = window.currentOpenCommodity;
+    
+    // Handle button active state
+    if (btnEl) {
+        const siblings = btnEl.parentElement.querySelectorAll('.chart-time-btn');
+        siblings.forEach(s => s.classList.remove('active'));
+        btnEl.classList.add('active');
+    } else {
+        const container = document.getElementById('commodityModal');
+        if (container) {
+            const btns = container.querySelectorAll('.chart-time-btn');
+            btns.forEach((b, i) => {
+                if (i === 0) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+        }
+    }
+    
+    const c = commoditiesData.find(x => x.sym === sym);
+    if (!c) return;
+    
+    const loader = document.getElementById('commodityChartLoader');
+    if (loader) loader.style.display = 'flex';
+    
+    // Map Yahoo Finance symbols to TradingView symbols
+    const tvSymbolMap = {
+        "GC=F": "TVC:GOLD",
+        "SI=F": "TVC:SILVER",
+        "CL=F": "TVC:USOIL",
+        "ALI=F": "MCX:ALUMINIUM1!",
+        "HG=F": "COMEX:HG1!",
+        "NG=F": "NYMEX:NG1!",
+        "BZ=F": "TVC:UKOIL",
+        "ZC=F": "CBOT:ZC1!",
+    };
+    const tvSymbol = tvSymbolMap[c.sym] || c.sym;
+
+    // Map our range to TradingView intervals
+    let tvInterval = "D"; // Default 1 month (daily candles)
+    if (range === '1d') tvInterval = "5"; // 1 day (5 min candles)
+    if (range === '1y') tvInterval = "W"; // 1 year (weekly candles)
+
+    // Clean up old widget if exists
+    if (window.commodityTvWidget) {
+        window.commodityTvWidget.remove();
+        window.commodityTvWidget = null;
+    }
+
+    // Initialize TradingView Widget - SLEEK MODE
+    const theme = document.body.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    window.commodityTvWidget = new TradingView.widget({
+        "autosize": true,
+        "symbol": tvSymbol,
+        "interval": tvInterval,
+        "timezone": "Etc/UTC",
+        "theme": theme,
+        "style": "1", // 1 = Candles, 2 = Line, 3 = Area. 3 might be sleeker? Let's use 3 for a sleek Area chart like we had!
+        "locale": "en",
+        "enable_publishing": false,
+        "backgroundColor": theme === 'dark' ? "#1a1a1a" : "#ffffff",
+        "gridColor": theme === 'dark' ? "#2a2a2a" : "#e0e3eb",
+        "hide_top_toolbar": true, // REMOVE CLUTTER
+        "hide_legend": true,      // REMOVE CLUTTER
+        "save_image": false,
+        "container_id": "commodityModalChart",
+        "toolbar_bg": theme === 'dark' ? "#121212" : "#f1f3f6",
+        "studies": []
+    });
+
+    // Hide loader after a short delay (TradingView widget loads asynchronously via iframe)
+    setTimeout(() => {
+        if (loader) loader.style.display = 'none';
+    }, 1500);
 };
 
 window.closeCommodityModal = () => {
     window.currentOpenCommodity = null;
     document.getElementById("commodityModal").classList.add("hidden");
     document.getElementById("commodityModal").style.display = "";
+
+    if (window.commodityTvWidget) {
+        window.commodityTvWidget.remove();
+        window.commodityTvWidget = null;
+    }
 };
 
 // Profile Modal Logic

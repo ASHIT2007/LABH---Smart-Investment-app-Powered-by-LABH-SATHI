@@ -16,6 +16,10 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "SLB", name: "SLB" },
       { ticker: "COP", name: "ConocoPhillips" },
     ],
+    historicalEvents: [
+      { name: "Israel-Hamas Conflict Start", date: "2023-10-06" }, // Pre-weekend close
+      { name: "Red Sea Shipping Attacks Peak", date: "2023-12-15" }
+    ]
   },
   {
     id: "ukraine",
@@ -29,6 +33,10 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "NOC", name: "Northrop Grumman" },
       { ticker: "ADM", name: "Archer-Daniels-Midland" },
     ],
+    historicalEvents: [
+      { name: "Russian Invasion", date: "2022-02-23" }, // Pre-invasion close
+      { name: "Nord Stream Sabotage", date: "2022-09-26" }
+    ]
   },
   {
     id: "scs",
@@ -43,6 +51,10 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "QCOM", name: "Qualcomm" },
       { ticker: "NVDA", name: "NVIDIA" },
     ],
+    historicalEvents: [
+      { name: "Pelosi Taiwan Visit", date: "2022-08-01" },
+      { name: "US Chip Export Bans", date: "2022-10-07" }
+    ]
   },
   {
     id: "brazil",
@@ -56,6 +68,9 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "ITUB", name: "Itaú Unibanco" },
       { ticker: "BBD", name: "Banco Bradesco" },
     ],
+    historicalEvents: [
+      { name: "Brazil Election Runoff", date: "2022-10-28" }
+    ]
   },
   {
     id: "usa_east",
@@ -68,6 +83,10 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "JPM", name: "JPMorgan Chase" },
       { ticker: "AAPL", name: "Apple" },
     ],
+    historicalEvents: [
+      { name: "SVB Collapse", date: "2023-03-09" },
+      { name: "CPI Shock", date: "2022-09-12" }
+    ]
   },
   {
     id: "uk_london",
@@ -80,6 +99,9 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "SHEL", name: "Shell" },
       { ticker: "UL", name: "Unilever" },
     ],
+    historicalEvents: [
+      { name: "UK Mini-Budget Crisis", date: "2022-09-22" }
+    ]
   },
   {
     id: "japan_tokyo",
@@ -92,6 +114,9 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "SONY", name: "Sony" },
       { ticker: "MUFG", name: "Mitsubishi UFJ" },
     ],
+    historicalEvents: [
+      { name: "BOJ Yield Curve Control Tweak", date: "2022-12-19" }
+    ]
   },
   {
     id: "india_mumbai",
@@ -104,6 +129,9 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "WIT", name: "Wipro (ADR)" },
       { ticker: "INDA", name: "iShares MSCI India ETF" },
     ],
+    historicalEvents: [
+      { name: "Hindenburg Adani Report", date: "2023-01-24" }
+    ]
   },
   {
     id: "south_africa",
@@ -116,6 +144,7 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "AU", name: "AngloGold Ashanti" },
       { ticker: "SBSW", name: "Sibanye Stillwater" },
     ],
+    historicalEvents: []
   },
   {
     id: "australia",
@@ -127,6 +156,7 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "BHP", name: "BHP Group" },
       { ticker: "RIO", name: "Rio Tinto" },
     ],
+    historicalEvents: []
   },
   {
     id: "canada",
@@ -138,6 +168,7 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "TD", name: "Toronto-Dominion Bank" },
       { ticker: "ENB", name: "Enbridge" },
     ],
+    historicalEvents: []
   },
   {
     id: "south_korea",
@@ -146,6 +177,7 @@ export const GLOBE_THREAT_ZONE_DEFS = [
     regionLabel: "South Korea",
     threatName: "Korean Peninsula — tech & memory cycle",
     topStocks: [{ ticker: "EWY", name: "iShares MSCI South Korea ETF" }],
+    historicalEvents: []
   },
   {
     id: "mexico",
@@ -157,6 +189,7 @@ export const GLOBE_THREAT_ZONE_DEFS = [
       { ticker: "AMX", name: "América Móvil" },
       { ticker: "CX", name: "Cemex" },
     ],
+    historicalEvents: []
   },
   {
     id: "singapore",
@@ -165,5 +198,6 @@ export const GLOBE_THREAT_ZONE_DEFS = [
     regionLabel: "Singapore",
     threatName: "Southeast Asia — trade & finance hub",
     topStocks: [{ ticker: "EWS", name: "iShares MSCI Singapore ETF" }],
+    historicalEvents: []
   },
 ];
