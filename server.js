@@ -651,9 +651,15 @@ async function fetchStockNews() {
         const titleLower = cleanTitle.toLowerCase();
         for (const sym of Object.keys(STOCKS_DATA)) {
           const stock = STOCKS_DATA[sym];
-          const nameWords = stock.name.toLowerCase().split(/\s+/);
-          const keyword = nameWords.find((w) => w.length > 3) || nameWords[0];
-          if (titleLower.includes(keyword) || titleLower.includes(sym.toLowerCase())) {
+          // Filter out generic corporate suffixes for better name matching
+          const nameWords = stock.name.toLowerCase().split(/\s+/).filter(w => !['inc', 'inc.', 'corp', 'corp.', 'ltd', 'ltd.', 'limited', 'co', 'co.', 'company'].includes(w));
+          const keyword = nameWords.find((w) => w.length >= 3) || nameWords[0];
+          
+          // Use word boundaries so 'F' doesn't match 'for' and 'AI' doesn't match 'said'
+          const symbolRegex = new RegExp(`\\b${sym.toLowerCase()}\\b`);
+          const keywordRegex = keyword ? new RegExp(`\\b${keyword}\\b`) : null;
+
+          if ((keywordRegex && keywordRegex.test(titleLower)) || symbolRegex.test(titleLower)) {
             matchedStock = {
               sym: stock.sym,
               name: stock.name,
