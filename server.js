@@ -107,7 +107,10 @@ app.post("/api/sync-portfolio", async (req, res) => {
 });
 
 // Markets Route
-app.get("/api/markets", (req, res) => {
+app.get("/api/markets", async (req, res) => {
+  if (STOCKS_DATA["RELIANCE"] && STOCKS_DATA["RELIANCE"].price === 0) {
+    await fetchLivePrices();
+  }
   res.json(Object.values(STOCKS_DATA));
 });
 
@@ -552,7 +555,10 @@ async function fetchCommodityPrices() {
 fetchCommodityPrices();
 setInterval(fetchCommodityPrices, 30000); // Every 30s for commodities
 
-app.get("/api/commodities", (req, res) => {
+app.get("/api/commodities", async (req, res) => {
+  if (COMMODITIES_DATA["GC=F"] && COMMODITIES_DATA["GC=F"].price === 0) {
+    await fetchCommodityPrices();
+  }
   res.json(Object.values(COMMODITIES_DATA));
 });
 // --- END COMMODITIES ---
@@ -599,7 +605,10 @@ async function fetchBenchmarkPrices() {
 fetchBenchmarkPrices();
 setInterval(fetchBenchmarkPrices, 15000); // Every 15s for benchmarks
 
-app.get("/api/benchmarks", (req, res) => {
+app.get("/api/benchmarks", async (req, res) => {
+  if (BENCHMARKS_DATA["^NSEI"] && BENCHMARKS_DATA["^NSEI"].price === 0) {
+    await fetchBenchmarkPrices();
+  }
   res.json(Object.values(BENCHMARKS_DATA));
 });
 // --- END MARKET BENCHMARKS ---
@@ -686,7 +695,10 @@ async function fetchStockNews() {
 fetchStockNews();
 setInterval(fetchStockNews, 120000); // Every 2 minutes
 
-app.get("/api/news", (req, res) => {
+app.get("/api/news", async (req, res) => {
+  if (!newsCache || newsCache.length === 0) {
+    await fetchStockNews();
+  }
   res.json(newsCache);
 });
 // --- END STOCK NEWS ---
