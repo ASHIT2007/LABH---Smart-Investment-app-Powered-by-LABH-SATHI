@@ -2263,11 +2263,11 @@ app.get("*", (req, res) => {
 });
 
 // Run server normally if executed directly
-if (require.main === module) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
-// Export for serverless environments (like Netlify Functions)
-module.exports = app;
+// Export for serverless environments (like Vercel)
+export default app;
