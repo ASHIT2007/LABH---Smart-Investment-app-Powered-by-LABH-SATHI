@@ -1426,7 +1426,7 @@ app.post("/api/ai/chat", async (req, res) => {
     const isVision = attachments && attachments.some((a) => a.type.startsWith("image/"));
     let actualModelId = modelId;
     if (!actualModelId || actualModelId === "auto") {
-      actualModelId = isVision ? "llama-3.2-11b-vision-preview" : "llama-3.1-8b-instant";
+      actualModelId = isVision ? "llama-3.2-90b-vision-preview" : "llama-3.1-8b-instant";
     }
 
     // --- DETECT JOURNAL REQUEST ---
@@ -1936,9 +1936,21 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
       // If Auto mode is active and the first model wasn't already Kimi, fallback to Kimi
       if ((!modelId || modelId === "auto") && !isMoonshot) {
         if (isVision) {
-          return res.json({ reply: "I'm currently experiencing high traffic on my image analysis models. Please try uploading your image again in a few moments." });
-        }
-        console.log(`[AI] Auto-fallback triggered: Retrying with Kimi k2.6...`);
+          try {
+            console.log(`[AI] Vision fallback triggered: Retrying with llama-3.2-11b-vision-preview...`);
+            actualModelId = "llama-3.2-11b-vision-preview";
+            response = await ai.chat.completions.create({
+              model: actualModelId,
+              messages: chatMessages,
+              max_tokens: 2000,
+              temperature: 0.3
+            });
+          } catch (fallbackErr) {
+            console.warn(`[AI] Vision fallback failed:`, fallbackErr.message);
+            return res.json({ reply: "I'm currently experiencing high traffic on my image analysis models. Please try uploading your image again in a few moments." });
+          }
+        } else {
+          console.log(`[AI] Auto-fallback triggered: Retrying with Kimi k2.6...`);
         try {
           isMoonshot = true;
           actualModelId = "moonshotai/kimi-k2.6";
@@ -1954,6 +1966,7 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
           console.error(`[AI] Fallback model also failed:`, kimiErr.message);
           return res.json({ reply: "I'm currently experiencing high traffic and my AI models are temporarily overwhelmed. Please try your request again in a few moments." });
         }
+        } // <--- Close the 'else' block for isVision
       } else {
         // Return a friendly error instead of raw JSON
         return res.json({ reply: "My AI brain hit a snag while processing that (either the request was too large or I hit a rate limit). Please try asking again!" });
