@@ -2041,6 +2041,7 @@ window.openTradeModal = (ticker, initialSide = "BUY") => {
             type: currentSide,
             ticker: ticker,
             quantity: qty,
+            price: stock.price,
             orderType: orderType, // MARKET, LIMIT, or SL
             triggerPrice: triggerPrice
           }),
