@@ -896,7 +896,14 @@ function updateDashboardUI() {
 
   // Update LIVE Order Book (New shared function)
   if (window.renderOrderBook) {
-    window.renderOrderBook("all");
+    const activeBtn = document.querySelector(".order-filter.active");
+    const currentFilter = activeBtn ? activeBtn.getAttribute("data-filter") : "all";
+    const currentTradesCount = currentUser.trades ? currentUser.trades.length : 0;
+    if (window._lastTradeCount !== currentTradesCount || window._lastFilter !== currentFilter) {
+      window.renderOrderBook(currentFilter);
+      window._lastTradeCount = currentTradesCount;
+      window._lastFilter = currentFilter;
+    }
   }
 
   // Update Reports if initialized
@@ -1876,7 +1883,7 @@ window.renderOrderBook = (filter = "all") => {
         minute: "2-digit",
       });
       return `
-            <tr class="fade-in">
+            <tr>
                 <td style="font-size: 11px; color: var(--muted); font-family: var(--font-mono);">${dateStr}</td>
                 <td style="font-weight: 700;">${trade.ticker}</td>
                 <td><span class="side-text ${trade.type.toLowerCase()}">${trade.type}</span></td>
