@@ -880,6 +880,7 @@ function updateDashboardUI() {
           marketData.find((m) => m.sym === p.ticker)?.price || p.avgPrice;
         const pl = (currentPrice - p.avgPrice) * p.qty;
         const isProfit = pl >= 0;
+        const isMarketStock = marketData.some((m) => m.sym === p.ticker);
         return `
                 <tr>
                     <td style="font-weight:bold;">${p.ticker}</td>
@@ -887,7 +888,7 @@ function updateDashboardUI() {
                     <td style="font-family:var(--font-mono);">${window.formatPrice(p.avgPrice)}</td>
                     <td style="font-family:var(--font-mono);">${window.formatPrice(currentPrice)}</td>
                     <td style="font-family:var(--font-mono); font-weight:bold;"><span class="tint-${isProfit ? "up" : "down"}">${isProfit ? "+" : ""}${window.formatPrice(pl)}</span></td>
-                    <td><button class="trade-action-btn" onclick="window.openTradeModal('${p.ticker}', 'SELL')">Sell</button></td>
+                    <td>${isMarketStock ? `<button class="trade-action-btn" onclick="window.openTradeModal('${p.ticker}', 'SELL')">Sell</button>` : `<span style="font-size: 11px; color: var(--muted); font-style: italic;">Mock Drill Only</span>`}</td>
                 </tr>
             `;
       })
