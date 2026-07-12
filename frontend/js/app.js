@@ -1921,7 +1921,7 @@ window.openTradeModal = (ticker, initialSide = "BUY") => {
   let stock = marketData.find((m) => m.sym === ticker);
   if (!stock) {
     const holding = currentUser?.portfolio?.find((p) => p.ticker === ticker);
-    stock = { price: holding ? holding.avgPrice : 0.01 };
+    stock = { price: holding?.avgPrice || 0.01 };
   }
   const modal = document.getElementById("tradeModal");
   if (!modal) return;
