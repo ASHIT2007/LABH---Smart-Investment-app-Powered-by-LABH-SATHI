@@ -1426,7 +1426,7 @@ app.post("/api/ai/chat", async (req, res) => {
     const isVision = attachments && attachments.some((a) => a.type.startsWith("image/"));
     let actualModelId = modelId;
     if (!actualModelId || actualModelId === "auto") {
-      actualModelId = isVision ? "llama-3.2-90b-vision-preview" : "llama-3.3-70b-versatile";
+      actualModelId = isVision ? "meta/llama-3.2-90b-vision-instruct" : "llama-3.3-70b-versatile";
     }
 
     // --- DETECT JOURNAL REQUEST ---
@@ -1896,18 +1896,23 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
 
     let response;
     const isNemotron = actualModelId === "nvidia/nemotron-3-ultra-550b-a55b";
+    const isNvidiaVision = actualModelId === "meta/llama-3.2-90b-vision-instruct";
     let isMoonshot = actualModelId === "moonshotai/kimi-k2.6";
     
     try {
-      if (isNemotron) {
-        response = await nvidiaAi.chat.completions.create({
+      if (isNemotron || isNvidiaVision) {
+        const payload = {
           model: actualModelId,
           messages: chatMessages,
           temperature: 0.3,
           top_p: 0.95,
-          max_tokens: 4000,
-          response_format: { type: "json_object" }
-        });
+          max_tokens: 4000
+        };
+        // Nvidia Vision model does not yet support json_object mode
+        if (!isNvidiaVision) {
+          payload.response_format = { type: "json_object" };
+        }
+        response = await nvidiaAi.chat.completions.create(payload);
       } else if (isMoonshot) {
         response = await moonshotAi.chat.completions.create({
           model: actualModelId,
@@ -1933,22 +1938,9 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
     } catch (e) {
       console.warn(`[AI] Primary model ${actualModelId} failed:`, e.message);
       
-      // If Auto mode is active and the first model wasn't already Kimi, fallback to Kimi
       if ((!modelId || modelId === "auto") && !isMoonshot) {
         if (isVision) {
-          try {
-            console.log(`[AI] Vision fallback triggered: Retrying with llama-3.2-90b-vision-preview...`);
-            actualModelId = "llama-3.2-90b-vision-preview";
-            response = await ai.chat.completions.create({
-              model: actualModelId,
-              messages: chatMessages,
-              max_tokens: 2000,
-              temperature: 0.3
-            });
-          } catch (fallbackErr) {
-            console.warn(`[AI] Vision fallback failed:`, fallbackErr.message);
-            return res.json({ reply: "I'm currently experiencing high traffic on my image analysis models. Please try uploading your image again in a few moments." });
-          }
+          return res.json({ reply: "My AI vision module is currently experiencing extremely high traffic. Please try uploading your chart again in a few moments." });
         } else {
           console.log(`[AI] Auto-fallback triggered: Retrying with Kimi k2.6...`);
         try {
