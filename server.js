@@ -1191,16 +1191,16 @@ app.post("/api/trade", async (req, res) => {
 
   let stock = STOCKS_DATA[ticker];
   if (!stock) {
-    if (!price) return res.status(400).json({ error: "Invalid stock and no price provided" });
+    const fallbackPrice = price ? parseFloat(price) : 0.01;
     stock = { 
       sym: ticker, 
       name: ticker, 
-      price: parseFloat(price), 
+      price: fallbackPrice, 
       intl: true, 
       change: 0, 
       changePct: 0,
-      week52High: parseFloat(price) * 1.1,
-      week52Low: parseFloat(price) * 0.9,
+      week52High: fallbackPrice * 1.1,
+      week52Low: fallbackPrice * 0.9,
       volume: "N/A"
     };
     STOCKS_DATA[ticker] = stock;
