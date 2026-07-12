@@ -734,7 +734,7 @@ app.get("/api/company-info/:symbol", async (req, res) => {
 
   try {
     const response = await ai.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
       messages: [
         {
           role: "system",
@@ -932,7 +932,7 @@ app.get("/api/sentiment", async (req, res) => {
       .join("\n");
 
     const response = await ai.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
       messages: [
         {
           role: "system",
@@ -1255,7 +1255,7 @@ app.post("/api/trade", async (req, res) => {
       biasType = "REVENGE_TRADE";
       try {
         const response = await ai.chat.completions.create({
-          model: "llama-3.1-8b-instant",
+          model: "llama-3.3-70b-versatile",
           messages: [{
             role: "system",
             content: "You are Labh Sathi, an expert AI trading coach. The user is exhibiting a revenge trading pattern — they have had multiple consecutive losing trades and are immediately trying to buy again. Give a 1-2 sentence supportive but firm warning about revenge trading and emotional decision-making. Be direct, cite the stats provided, and suggest waiting."
@@ -1323,7 +1323,7 @@ app.post("/api/trade", async (req, res) => {
     if (bias && ai) {
       try {
         const response = await ai.chat.completions.create({
-          model: "llama-3.1-8b-instant",
+          model: "llama-3.3-70b-versatile",
           messages: [{
             role: "system",
             content: "You are Labh Sathi, an expert AI trading coach. The user just panic-sold a stock at a loss after holding for less than 48 hours. Give a 1-sentence supportive but data-driven critique about the dangers of panic selling and loss aversion. Be direct, professional, and brief."
@@ -1387,7 +1387,7 @@ Format:
 }`;
 
     const response = await ai.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
       messages: [{ role: "system", content: "Respond ONLY with valid JSON. Do not nest objects in text fields." }, { role: "user", content: prompt }],
       temperature: 0.3,
       response_format: { type: "json_object" }
@@ -1426,7 +1426,7 @@ app.post("/api/ai/chat", async (req, res) => {
     const isVision = attachments && attachments.some((a) => a.type.startsWith("image/"));
     let actualModelId = modelId;
     if (!actualModelId || actualModelId === "auto") {
-      actualModelId = isVision ? "llama-3.2-90b-vision-preview" : "llama-3.1-8b-instant";
+      actualModelId = isVision ? "llama-3.2-90b-vision-preview" : "llama-3.3-70b-versatile";
     }
 
     // --- DETECT JOURNAL REQUEST ---
@@ -1491,7 +1491,7 @@ app.post("/api/ai/chat", async (req, res) => {
     let queryCategory = "greeting"; // Default fallback
     try {
       const classResponse = await ai.chat.completions.create({
-        model: "llama-3.1-8b-instant",
+        model: "llama-3.3-70b-versatile",
         messages: [{
           role: "system",
           content: `Classify the user's trading query into exactly one of these categories:
@@ -1925,7 +1925,7 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
           temperature: 0.3
         };
         // Groq's Llama 3.2 Vision model does not yet support json_object mode
-        if (actualModelId !== "llama-3.2-11b-vision-preview") {
+        if (actualModelId !== "llama-3.2-90b-vision-preview") {
           payload.response_format = { type: "json_object" };
         }
         response = await ai.chat.completions.create(payload);
@@ -1937,8 +1937,8 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
       if ((!modelId || modelId === "auto") && !isMoonshot) {
         if (isVision) {
           try {
-            console.log(`[AI] Vision fallback triggered: Retrying with llama-3.2-11b-vision-preview...`);
-            actualModelId = "llama-3.2-11b-vision-preview";
+            console.log(`[AI] Vision fallback triggered: Retrying with llama-3.2-90b-vision-preview...`);
+            actualModelId = "llama-3.2-90b-vision-preview";
             response = await ai.chat.completions.create({
               model: actualModelId,
               messages: chatMessages,
@@ -2179,7 +2179,7 @@ app.post("/api/roast", async (req, res) => {
     });
   try {
     const response = await ai.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
       messages: [
         {
           role: "user",
