@@ -1043,21 +1043,41 @@
                         </div>
                         <span class="model-badge smart-badge">Auto</span>
                     </div>
-                    <div class="model-item" onclick="selectModel('llama-3.1-8b-instant', 'Llama 3.1 8B', 'Main')">
+                    <div class="model-item" onclick="selectModel('gpt-oss-120b', 'GPT OSS 120B', 'Main')">
                         <div class="model-info">
-                            <span class="model-name">Llama 3.1 8B</span>
-                            <span class="model-desc">Rapid questions</span>
+                            <span class="model-name">GPT OSS 120B</span>
+                            <span class="model-desc">Highest precision & logic</span>
                         </div>
-                        <span class="model-badge">quick</span>
+                        <span class="model-badge" style="background: rgba(118, 185, 0, 0.2); color: #76B900;">smartest</span>
                     </div>
-                    <div class="model-item" onclick="selectModel('llama-3.3-70b-versatile', 'Llama 3.3 70B', 'Main')">
+                    <div class="model-item" onclick="selectModel('kimi-k2-0905', 'Kimi K2-0905', 'Main')">
+                        <div class="model-info">
+                            <span class="model-name">Kimi K2-0905</span>
+                            <span class="model-desc">Massive document analysis</span>
+                        </div>
+                        <span class="model-badge">smart</span>
+                    </div>
+                    <div class="model-item" onclick="selectModel('llama-3.3-70b', 'Llama 3.3 70B', 'Main')">
                         <div class="model-info">
                             <span class="model-name">Llama 3.3 70B</span>
-                            <span class="model-desc">Deep reasoning</span>
+                            <span class="model-desc">Balanced speed & quality</span>
                         </div>
-                        <span class="model-badge smart-badge">Smart</span>
+                        <span class="model-badge smart-badge">quick</span>
                     </div>
-
+                    <div class="model-item" onclick="selectModel('qwq-32b', 'QwQ-32B', 'Main')">
+                        <div class="model-info">
+                            <span class="model-name">QwQ-32B</span>
+                            <span class="model-desc">Fast analytical reasoning</span>
+                        </div>
+                        <span class="model-badge">quicker</span>
+                    </div>
+                    <div class="model-item" onclick="selectModel('gpt-oss-20b', 'GPT OSS 20B', 'Main')">
+                        <div class="model-info">
+                            <span class="model-name">GPT OSS 20B</span>
+                            <span class="model-desc">Instant low-latency replies</span>
+                        </div>
+                        <span class="model-badge">quickest</span>
+                    </div>
                     <div class="model-item" onclick="selectModel('nvidia/nemotron-3-ultra-550b-a55b', 'Nemotron 3 Ultra', 'Main')">
                         <div class="model-info">
                             <span class="model-name">Nemotron 3 Ultra</span>
@@ -1065,7 +1085,6 @@
                         </div>
                         <span class="model-badge" style="background: rgba(118, 185, 0, 0.2); color: #76B900;">Smartest</span>
                     </div>
-
                     <div class="model-item" onclick="selectModel('moonshotai/kimi-k2.6', 'Kimi k2.6', 'Main')">
                         <div class="model-info">
                             <span class="model-name">Kimi k2.6</span>
@@ -1073,7 +1092,6 @@
                         </div>
                         <span class="model-badge" style="background: rgba(255, 107, 107, 0.2); color: #ff6b6b;">analytical</span>
                     </div>
-
                 </div>
             </div>
             <button class="panel-icon-btn" onclick="window.toggleChatHistory()" title="Chat History"><span class="material-symbols-outlined">history</span></button>
@@ -1121,7 +1139,7 @@
 
         <div class="chat-input-pill-area">
             <!-- Persistent System Prompts -->
-            <div id="bottomQuickPrompts" class="chat-quick-prompts hidden" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; width: 100%; justify-content: center;">
+            <div id="bottomQuickPrompts" class="chat-quick-prompts hidden" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; width: 100%; justify-content: flex-start;">
                 <button class="chip-btn" style="display: flex; align-items: center; gap: 6px; padding: 10px 14px; font-size: 13px; flex-shrink: 0;" onclick="document.getElementById('chatInput').value='Review my portfolio'; document.getElementById('chatSend').click();">
                     <span class="material-symbols-outlined" style="font-size: 16px; color: #60a5fa;">pie_chart</span> Review Portfolio
                 </button>

@@ -1424,9 +1424,25 @@ app.post("/api/ai/chat", async (req, res) => {
     const promptLower = (prompt || "").toLowerCase();
     
     const isVision = attachments && attachments.some((a) => a.type.startsWith("image/"));
-    let actualModelId = modelId;
+    const isDocument = attachments && attachments.some((a) => !a.type.startsWith("image/"));
+    
+    // Map frontend UI names to actual backend API names
+    const modelIdMap = {
+      "qwq-32b": "qwen/qwen3-32b",
+      "kimi-k2-0905": "moonshotai/kimi-k2.6",
+      "gpt-oss-120b": "openai/gpt-oss-120b",
+      "gpt-oss-20b": "openai/gpt-oss-20b",
+      "llama-3.3-70b": "llama-3.3-70b-versatile"
+    };
+
+    let mappedModelId = modelIdMap[modelId] || modelId;
+    let actualModelId = mappedModelId;
+    
+    // For journal or early returns, resolve auto immediately
     if (!actualModelId || actualModelId === "auto") {
-      actualModelId = isVision ? "meta/llama-3.2-90b-vision-instruct" : "llama-3.3-70b-versatile";
+      if (isVision) actualModelId = "meta/llama-3.2-90b-vision-instruct";
+      else if (isDocument) actualModelId = "llama-3.3-70b-versatile";
+      else actualModelId = "llama-3.3-70b-versatile"; // Temporary default, refined later based on category
     }
 
     // --- DETECT JOURNAL REQUEST ---
@@ -1499,8 +1515,9 @@ app.post("/api/ai/chat", async (req, res) => {
 2. single_stock (analyzing or asking about ONE specific ticker)
 3. portfolio (asking about their own portfolio performance/holdings)
 4. comparison (comparing 2+ tickers or sectors)
-5. market (broad market outlook, top movers, news)
-6. decision (direct "should I buy/sell X" questions)
+5. market (broad market outlook, market conditions, top movers)
+6. news (asking specifically for latest news, headlines, or updates)
+7. decision (direct "should I buy/sell X" questions)
 7. educational (defining terms like RSI, VWAP - ONLY for finance/trading terms)
 8. screener (filtering/searching for stocks based on criteria like "cheapest", "tech stocks under 50", etc)
 9. irrelevant (non-financial questions, coding, math, general knowledge completely unrelated to finance or the app)
@@ -1518,6 +1535,19 @@ Return ONLY a valid JSON object: {"category": "category_name", "search_query": "
       const classParams = JSON.parse(classResponse.choices[0].message.content);
       if (classParams && classParams.category) {
         queryCategory = classParams.category;
+      }
+      
+      // Refine Auto Model based on classification if not vision/document
+      if ((!mappedModelId || mappedModelId === "auto") && !isVision && !isDocument) {
+        if (queryCategory === "portfolio" || queryCategory === "decision" || queryCategory === "screener") {
+            actualModelId = "openai/gpt-oss-120b"; // Smartest for complex logic
+        } else if (queryCategory === "analysis" || queryCategory === "comparison") {
+            actualModelId = "qwen/qwen3-32b"; // Quicker for analytical reasoning
+        } else if (queryCategory === "greeting" || queryCategory === "single_stock" || queryCategory === "educational") {
+            actualModelId = "openai/gpt-oss-20b"; // Quickest for simple facts/greetings
+        } else {
+            actualModelId = "llama-3.3-70b-versatile"; // Quick & versatile for everything else (market, etc)
+        }
       }
 
       // --- TAVILY WEB SEARCH ---
@@ -1637,7 +1667,9 @@ Return ONLY valid JSON: {"sector": "Technology" (optional), "maxPrice": number (
     } else if (queryCategory === "comparison") {
       categorySchema = `{"subject": "One line stating what's being compared", "metrics": [{"name": "Metric Name", "tickerA": "Ticker A Value", "tickerB": "Ticker B Value"}], "explanation": "A brief, clear explanation (3-4 sentences) summarizing the comparison takeaway and which option might be better based on the data", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
     } else if (queryCategory === "market") {
-      categorySchema = `{"news_synthesis": "1-2 sentence synthesis of the overall market picture", "news_bullets": ["Relevant headline 1 (flat string, no markdown bullets)", "Relevant headline 2"], "movers": [{"ticker": "SYM", "price": 0, "change_pct": 0, "direction": "UP/DOWN", "time_frame": "1D"}], "explanation": "A detailed but brief explanation of the market situation, its causes, and potential impacts on investors, spanning 3-4 sentences", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
+      categorySchema = `{"market_synthesis": "1-2 sentence synthesis of the overall market picture and index movements", "movers": [{"ticker": "SYM", "price": 0, "change_pct": 0, "direction": "UP/DOWN", "time_frame": "1D"}], "explanation": "A detailed but brief explanation of the market situation, its causes, and potential impacts on investors, spanning 3-4 sentences", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
+    } else if (queryCategory === "news") {
+      categorySchema = `{"news_synthesis": "A detailed 3-4 sentence synthesis of the latest global and national market news", "news_bullets": ["Top Headline 1 (global/national)", "Top Headline 2", "Top Headline 3", "Top Headline 4", "Top Headline 5"], "explanation": "A deep analysis of how this news impacts specific sectors and the overall market, spanning 4-5 sentences", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
     } else if (queryCategory === "decision") {
       categorySchema = `{"observation": "State what data shows plainly", "disclaimer": "Explicit statement that you give data-backed observations not financial advice", "signal": "Specific conditional signal if one exists", "heatmapData": [], "dumbbellData": [], "pieChartData": []}`;
     } else if (queryCategory === "screener") {
@@ -1679,7 +1711,11 @@ INDICATOR RULES — MANDATORY:
 - You NEVER calculate or estimate technical indicator values yourself.
 - You ONLY report indicator values that are explicitly provided to you in the COMPUTED TECHNICAL INDICATORS section below.
 - If a requested indicator is not present in the provided data, say so explicitly ("not calculated for this symbol").
-- Never produce a different value for the same indicator on the same symbol within a short time window unless the underlying data has actually changed.`;
+- Never produce a different value for the same indicator on the same symbol within a short time window unless the underlying data has actually changed.
+
+DATASET LIMITATION RULES — MANDATORY:
+- You MUST ONLY recommend, analyze, or discuss stocks that are explicitly listed in the CURRENT MARKET section above.
+- If the user asks about a stock that is NOT in the CURRENT MARKET dataset, you MUST explicitly state that this stock is "not in the market at the moment" and refuse to analyze it. Do not hallucinate prices or data for stocks outside the dataset.`;
 
     // --- FETCH AND COMPUTE TECHNICAL INDICATORS FOR MENTIONED TICKERS ---
     // Extract ticker symbols from the user prompt
@@ -1873,7 +1909,7 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
     // Handling multimodal content
     if (attachments && attachments.length > 0) {
       const userContent = [
-        { type: "text", text: prompt || "Analyze these files for me." },
+        { type: "text", text: (prompt || "Analyze these files for me.") + (isVision ? "\n\nCRITICAL SPEED RULE: You must keep your analysis extremely concise and punchy (under 3-4 sentences). Do NOT generate a long response." : "") },
       ];
 
       attachments.forEach((file) => {
@@ -1906,7 +1942,7 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
           messages: chatMessages,
           temperature: 0.3,
           top_p: 0.95,
-          max_tokens: 4000
+          max_tokens: isNvidiaVision ? 300 : 4000
         };
         // Nvidia Vision model does not yet support json_object mode
         if (!isNvidiaVision) {
@@ -2068,7 +2104,10 @@ ${screenerThresholdMsg ? `Include this note in your reply: "${screenerThresholdM
         }
         const textBody = parsed.explanation || parsed.takeaway || "";
         if (textBody) finalReply += `\n\n${textBody}`;
-      } else if (queryCategory === "market") {
+      } else if (queryCategory === "market" || queryCategory === "news") {
+        if (parsed.market_synthesis) {
+          finalReply += `${parsed.market_synthesis}\n\n`;
+        }
         if (parsed.news_synthesis) {
           finalReply += `${parsed.news_synthesis}\n\n`;
         }

@@ -1383,7 +1383,7 @@ body[data-theme="dark"] .ai-logo-img {
 .model-dropdown-menu {
   position: absolute;
   top: 100%;
-  right: 0;
+  left: 0;
   margin-top: 8px;
   background: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -2808,7 +2808,8 @@ body[data-theme="light"] .ai-bubble::before {
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
-  background: var(--surface-light);
+  background: var(--card-inset);
+  backdrop-filter: blur(12px);
 }
 .ai-markdown-reply table th,
 .ai-markdown-reply table td {

@@ -772,14 +772,36 @@ export function setupChat() {
       if (isImage) {
         const reader = new FileReader();
         reader.onload = (event) => {
-          attachedFiles.push({
-            name: file.name,
-            type: file.type || "image/png", // Force image type if OS failed to provide it
-            data: event.target.result,
-            id: Date.now() + Math.random(),
-          });
-          renderPreviews();
-          sendBtn.classList.add("active");
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const MAX_WIDTH = 800;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Compress to JPEG with 0.8 quality to vastly reduce base64 size
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+            
+            attachedFiles.push({
+              name: file.name,
+              type: "image/jpeg", 
+              data: dataUrl,
+              id: Date.now() + Math.random(),
+            });
+            renderPreviews();
+            sendBtn.classList.add("active");
+          };
+          img.src = event.target.result;
         };
         reader.readAsDataURL(file);
       } else if (ext === "xlsx" || ext === "xls" || ext === "csv") {
@@ -1087,7 +1109,7 @@ export function setupChat() {
 
     try {
       // Get selected model
-      let selectedModel = window.currentAiModel || "llama-3.1-8b-instant";
+      let selectedModel = window.currentAiModel || "qwq-32b";
 
       const currentUser = getAuthUser();
       const data = await apiCall("/ai/chat", {

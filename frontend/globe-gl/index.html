@@ -66,194 +66,28 @@
       }
 
       /* -------------------------------------------------------------
-       THREAT MARKERS — Pulsating danger indicators
+       MINIMAL ICON MARKERS
        ------------------------------------------------------------- */
-      .threat-marker {
-        position: relative;
-        width: 14px;
-        height: 14px;
-        border-radius: 999px;
-        transform: translate(-50%, -50%);
-        cursor: pointer;
+      .globe-marker-icon {
+        position: absolute;
         pointer-events: auto;
+        cursor: pointer;
         z-index: 5;
-        --core: #ff4d4d;
-        --ring: rgba(255, 95, 95, 0.55);
-        --soft: rgba(255, 95, 95, 0.18);
-        background: radial-gradient(
-          circle at 35% 35%,
-          #fff 0%,
-          var(--core) 45%,
-          #c61b1b 100%
-        );
-        box-shadow:
-          0 0 8px var(--core),
-          0 0 20px var(--ring),
-          inset 0 0 4px rgba(255, 255, 255, 0.4);
-        animation: pulse-core 2.4s ease-in-out infinite;
+        /* Hardware acceleration to prevent jumping/jitter */
+        will-change: transform;
+        top: 0; left: 0;
       }
-
-      .threat-marker::before {
-        content: "";
-        position: absolute;
-        inset: -6px;
-        border-radius: inherit;
-        border: 1.5px solid var(--ring);
-        opacity: 0;
-        animation: pulse-ring 2.6s ease-out infinite;
+      .globe-marker-icon .material-symbols-outlined {
+        font-size: 18px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        transition: transform 0.15s ease-out;
+        /* Center relative to wrapper and enable subpixel rendering */
+        transform: translate(-50%, -50%) translateZ(0);
+        backface-visibility: hidden;
+        display: block;
       }
-
-      .threat-marker--orange {
-        --core: #ff9d2e;
-        --ring: rgba(255, 170, 70, 0.55);
-        --soft: rgba(255, 170, 70, 0.18);
-        background: radial-gradient(circle at 35% 35%, #fff7ea 0%, var(--core) 50%, #d56700 100%);
-      }
-
-      .threat-marker:hover {
-        transform: translate(-50%, -50%) scale(1.15);
-        filter: brightness(1.1);
-      }
-
-      /* -------------------------------------------------------------
-       PULSE MARKERS — Clean market health indicators
-       ------------------------------------------------------------- */
-      .pulse-marker {
-        position: relative;
-        width: 10px;
-        height: 10px;
-        border-radius: 999px;
-        transform: translate(-50%, -50%);
-        cursor: pointer;
-        pointer-events: auto;
-        z-index: 4;
-        --core: #fbbf24;
-        --ring: rgba(251, 191, 36, 0.4);
-        background: radial-gradient(circle at 40% 40%, #fff 0%, var(--core) 60%, #b78a00 100%);
-        box-shadow: 0 0 6px var(--core), 0 0 14px var(--ring);
-        border: 1px solid rgba(255,255,255,0.15);
-        animation: pulse-glow 3s ease-in-out infinite;
-      }
-
-      .pulse-marker::before {
-        content: "";
-        position: absolute;
-        inset: -4px;
-        border-radius: inherit;
-        border: 1px solid var(--ring);
-        opacity: 0;
-        animation: pulse-ring-soft 3s ease-out infinite;
-      }
-
-      .pulse-marker--up {
-        --core: #34d399;
-        --ring: rgba(52, 211, 153, 0.4);
-        background: radial-gradient(circle at 40% 40%, #ecfdf5 0%, var(--core) 60%, #059669 100%);
-      }
-
-      .pulse-marker--down {
-        --core: #f87171;
-        --ring: rgba(248, 113, 113, 0.4);
-        background: radial-gradient(circle at 40% 40%, #fff1f2 0%, var(--core) 60%, #dc2626 100%);
-      }
-
-      .pulse-marker--flat {
-        --core: #94a3b8;
-        --ring: rgba(148, 163, 184, 0.3);
-        background: radial-gradient(circle at 40% 40%, #f1f5f9 0%, var(--core) 60%, #64748b 100%);
-      }
-
-      .pulse-marker:hover {
-        transform: translate(-50%, -50%) scale(1.3);
-        filter: brightness(1.15);
-      }
-
-      @keyframes pulse-core {
-        0%, 100% {
-          box-shadow: 0 0 8px var(--core), 0 0 20px var(--ring), inset 0 0 4px rgba(255,255,255,0.4);
-        }
-        50% {
-          box-shadow: 0 0 12px var(--core), 0 0 28px var(--ring), 0 0 40px var(--soft), inset 0 0 5px rgba(255,255,255,0.5);
-        }
-      }
-
-      @keyframes pulse-glow {
-        0%, 100% {
-          box-shadow: 0 0 6px var(--core), 0 0 14px var(--ring);
-        }
-        50% {
-          box-shadow: 0 0 10px var(--core), 0 0 22px var(--ring);
-        }
-      }
-
-      @keyframes pulse-ring {
-        0% { transform: scale(0.6); opacity: 0.7; }
-        100% { transform: scale(2); opacity: 0; }
-      }
-
-      @keyframes pulse-ring-soft {
-        0% { transform: scale(0.8); opacity: 0.5; }
-        100% { transform: scale(1.8); opacity: 0; }
-      }
-
-      /* -------------------------------------------------------------
-       ENERGY PLANT MARKERS — Nuclear/Power facilities
-       ------------------------------------------------------------- */
-      .energy-marker {
-        position: relative;
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        transform: translate(-50%, -50%);
-        cursor: pointer;
-        pointer-events: auto;
-        z-index: 3;
-        --core: #f59e0b;
-        --ring: rgba(245, 158, 11, 0.35);
-        background: radial-gradient(circle at 40% 40%, #fffbeb 0%, var(--core) 55%, #b45309 100%);
-        box-shadow: 0 0 5px var(--core), 0 0 12px var(--ring);
-        border: 1px solid rgba(255,255,255,0.1);
-        animation: energy-breathe 4s ease-in-out infinite;
-      }
-
-      .energy-marker:hover {
-        transform: translate(-50%, -50%) scale(1.5);
-        filter: brightness(1.2);
-      }
-
-      @keyframes energy-breathe {
-        0%, 100% { box-shadow: 0 0 4px var(--core), 0 0 10px var(--ring); }
-        50% { box-shadow: 0 0 7px var(--core), 0 0 16px var(--ring); }
-      }
-
-      /* -------------------------------------------------------------
-       STOCK EXCHANGE MARKERS — Financial hubs
-       ------------------------------------------------------------- */
-      .exchange-marker {
-        position: relative;
-        width: 9px;
-        height: 9px;
-        border-radius: 2px;
-        transform: translate(-50%, -50%) rotate(45deg);
-        cursor: pointer;
-        pointer-events: auto;
-        z-index: 4;
-        --core: #60a5fa;
-        --ring: rgba(96, 165, 250, 0.35);
-        background: radial-gradient(circle at 40% 40%, #eff6ff 0%, var(--core) 55%, #1d4ed8 100%);
-        box-shadow: 0 0 5px var(--core), 0 0 12px var(--ring);
-        border: 1px solid rgba(255,255,255,0.15);
-        animation: exchange-pulse 3.5s ease-in-out infinite;
-      }
-
-      .exchange-marker:hover {
-        transform: translate(-50%, -50%) rotate(45deg) scale(1.4);
-        filter: brightness(1.2);
-      }
-
-      @keyframes exchange-pulse {
-        0%, 100% { box-shadow: 0 0 4px var(--core), 0 0 10px var(--ring); }
-        50% { box-shadow: 0 0 8px var(--core), 0 0 18px var(--ring); }
+      .globe-marker-icon:hover .material-symbols-outlined {
+        transform: translate(-50%, -50%) scale(1.4) translateZ(0);
       }
 
       /* -------------------------------------------------------------
@@ -663,28 +497,55 @@
                         </div>
                         <span class="model-badge smart-badge">Auto</span>
                     </div>
-                    <div class="model-item" onclick="selectModel('llama-3.1-8b-instant', 'Llama 3.1 8B', 'Globe')">
+                    <div class="model-item" onclick="selectModel('gpt-oss-120b', 'GPT OSS 120B', 'Globe')">
                         <div class="model-info">
-                            <span class="model-name">Llama 3.1 8B</span>
-                            <span class="model-desc">Fastest answers</span>
+                            <span class="model-name">GPT OSS 120B</span>
+                            <span class="model-desc">Highest precision & logic</span>
                         </div>
-                        <span class="model-badge">quick</span>
+                        <span class="model-badge" style="background: rgba(118, 185, 0, 0.2); color: #76B900;">smartest</span>
                     </div>
-                    <div class="model-item" onclick="selectModel('llama-3.3-70b-versatile', 'Llama 3.3 70B', 'Globe')">
+                    <div class="model-item" onclick="selectModel('kimi-k2-0905', 'Kimi K2-0905', 'Globe')">
+                        <div class="model-info">
+                            <span class="model-name">Kimi K2-0905</span>
+                            <span class="model-desc">Massive document analysis</span>
+                        </div>
+                        <span class="model-badge">smart</span>
+                    </div>
+                    <div class="model-item" onclick="selectModel('llama-3.3-70b', 'Llama 3.3 70B', 'Globe')">
                         <div class="model-info">
                             <span class="model-name">Llama 3.3 70B</span>
-                            <span class="model-desc">Advanced reasoning</span>
+                            <span class="model-desc">Balanced speed & quality</span>
                         </div>
-                        <span class="model-badge smart-badge">Smart</span>
+                        <span class="model-badge smart-badge">quick</span>
+                    </div>
+                    <div class="model-item" onclick="selectModel('qwq-32b', 'QwQ-32B', 'Globe')">
+                        <div class="model-info">
+                            <span class="model-name">QwQ-32B</span>
+                            <span class="model-desc">Fast analytical reasoning</span>
+                        </div>
+                        <span class="model-badge">quicker</span>
+                    </div>
+                    <div class="model-item" onclick="selectModel('gpt-oss-20b', 'GPT OSS 20B', 'Globe')">
+                        <div class="model-info">
+                            <span class="model-name">GPT OSS 20B</span>
+                            <span class="model-desc">Instant low-latency replies</span>
+                        </div>
+                        <span class="model-badge">quickest</span>
                     </div>
                     <div class="model-item" onclick="selectModel('nvidia/nemotron-3-ultra-550b-a55b', 'Nemotron 3 Ultra', 'Globe')">
                         <div class="model-info">
                             <span class="model-name">Nemotron 3 Ultra</span>
-                            <span class="model-desc">Nvidia 550B (API)</span>
+                            <span class="model-desc">Tough financial queries</span>
                         </div>
-                        <span class="model-badge" style="background: rgba(118, 185, 0, 0.2); color: #76B900;">Nvidia</span>
+                        <span class="model-badge" style="background: rgba(118, 185, 0, 0.2); color: #76B900;">Smartest</span>
                     </div>
-
+                    <div class="model-item" onclick="selectModel('moonshotai/kimi-k2.6', 'Kimi k2.6', 'Globe')">
+                        <div class="model-info">
+                            <span class="model-name">Kimi k2.6</span>
+                            <span class="model-desc">Document & data analysis</span>
+                        </div>
+                        <span class="model-badge" style="background: rgba(255, 107, 107, 0.2); color: #ff6b6b;">analytical</span>
+                    </div>
                 </div>
             </div>
                 <button class="panel-icon-btn" onclick="document.getElementById('aiWidgetPanel').classList.toggle('ai-panel-fullscreen'); const i = this.querySelector('span'); i.textContent = i.textContent === 'fullscreen' ? 'fullscreen_exit' : 'fullscreen';"><span class="material-symbols-outlined">fullscreen</span></button>
@@ -1028,22 +889,32 @@
            markersContainer.innerHTML = '';
            cesiumMarkers = data.map(function(d) {
              var el = document.createElement("div");
-             var stress = d.type === "threat" ? zoneStressDrop(d) : d.change;
-
-             var markerClass = "";
-             if (d.type === "threat") {
-               // Threat markers: red for severe, orange for moderate
-               markerClass = "threat-marker" + (Math.abs(stress) >= 2 ? "" : " threat-marker--orange");
-             } else {
-               // Pulse markers: green=up, red=down, grey=flat
-               var v = Number(stress);
-               var dir = (!Number.isFinite(v) || Math.abs(v) < 0.3) ? "--flat" : (v > 0 ? "--up" : "--down");
-               markerClass = "pulse-marker pulse-marker" + dir;
-             }
-
-             el.className = markerClass;
+             el.className = 'globe-marker-icon';
              el.style.position = 'absolute';
              el.style.pointerEvents = 'auto';
+
+             var iconSpan = document.createElement("span");
+             iconSpan.className = "material-symbols-outlined";
+             var stress = d.type === "threat" ? zoneStressDrop(d) : d.change;
+
+             if (d.type === "threat") {
+                 iconSpan.textContent = "warning";
+                 iconSpan.style.color = (Math.abs(stress) >= 2) ? "#ef4444" : "#f97316";
+             } else {
+                 var v = Number(stress);
+                 if (!Number.isFinite(v) || Math.abs(v) < 0.3) {
+                     iconSpan.textContent = "horizontal_rule";
+                     iconSpan.style.color = "#94a3b8";
+                 } else if (v > 0) {
+                     iconSpan.textContent = "trending_up";
+                     iconSpan.style.color = "#10b981";
+                 } else {
+                     iconSpan.textContent = "trending_down";
+                     iconSpan.style.color = "#ef4444";
+                 }
+             }
+             
+             el.appendChild(iconSpan);
 
              el.addEventListener("mouseenter", function(evt) {
                if (d.type === "threat") showTooltip(evt, d);
@@ -1096,8 +967,7 @@
 
                 var canvasPosition = viewer.scene.cartesianToCanvasCoordinates(position);
                 if (Cesium.defined(canvasPosition)) {
-                    m.el.style.left = canvasPosition.x + 'px';
-                    m.el.style.top = canvasPosition.y + 'px';
+                    m.el.style.transform = 'translate3d(' + canvasPosition.x + 'px, ' + canvasPosition.y + 'px, 0)';
                     m.el.style.display = 'block';
                 } else {
                     m.el.style.display = 'none';
@@ -1110,9 +980,15 @@
            // Stock Exchanges — blue diamonds
            STOCK_EXCHANGES.forEach(function(ex) {
               var el = document.createElement('div');
-              el.className = 'exchange-marker';
+              el.className = 'globe-marker-icon';
               el.style.position = 'absolute';
               el.style.pointerEvents = 'auto';
+
+              var iconSpan = document.createElement("span");
+              iconSpan.className = "material-symbols-outlined";
+              iconSpan.textContent = "account_balance";
+              iconSpan.style.color = "#60a5fa";
+              el.appendChild(iconSpan);
               el.addEventListener('mouseenter', function(evt) {
                 tooltip.innerHTML = '<p class="tt-region">' + escapeHtml(ex.name) + '</p>' +
                   '<p class="tt-title">' + escapeHtml(ex.abbr) + ' · ' + escapeHtml(ex.city) + '</p>';
@@ -1134,9 +1010,15 @@
            // Energy Plants — amber dots
            ENERGY_PLANTS.forEach(function(plant) {
               var el = document.createElement('div');
-              el.className = 'energy-marker';
+              el.className = 'globe-marker-icon';
               el.style.position = 'absolute';
               el.style.pointerEvents = 'auto';
+
+              var iconSpan = document.createElement("span");
+              iconSpan.className = "material-symbols-outlined";
+              iconSpan.textContent = "bolt";
+              iconSpan.style.color = "#f59e0b";
+              el.appendChild(iconSpan);
               el.addEventListener('mouseenter', function(evt) {
                 tooltip.innerHTML = '<p class="tt-region">' + escapeHtml(plant.name) + '</p>' +
                   '<p class="tt-title">' + escapeHtml(plant.type) + ' · ' + escapeHtml(plant.capacity) + '</p>' +

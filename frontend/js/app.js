@@ -1918,7 +1918,11 @@ document.querySelectorAll(".order-filter").forEach((btn) => {
  * Global openTradeModal Implementation (LIVE Integrated)
  */
 window.openTradeModal = (ticker, initialSide = "BUY") => {
-  const stock = marketData.find((m) => m.sym === ticker) || { price: 0 };
+  let stock = marketData.find((m) => m.sym === ticker);
+  if (!stock) {
+    const holding = currentUser?.portfolio?.find((p) => p.ticker === ticker);
+    stock = { price: holding ? holding.avgPrice : 0.01 };
+  }
   const modal = document.getElementById("tradeModal");
   if (!modal) return;
 
