@@ -1,6 +1,6 @@
 <div align="center">
+<img width="474" height="371" alt="logo" src="https://github.com/user-attachments/assets/66caec0c-8838-4867-90d1-306c3457a04b" />
 
-<img width="200" height="200" alt="LABH LITE Logo" src="https://github.com/user-attachments/assets/a141a5a6-1366-4885-a00e-513a41b98d67" />
 
 # LABH — Smart Investment App Powered by LABH SATHI
 
