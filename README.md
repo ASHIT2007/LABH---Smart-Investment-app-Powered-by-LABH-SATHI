@@ -8,7 +8,7 @@
 
 *A sleek, immersive, and visually stunning trading experience built with modern fintech aesthetics.*
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_App-00C853?style=for-the-badge&logoColor=white)](https://github.com/ASHIT2007/LABH---Smart-Investment-app-Powered-by-LABH-SATHI)
+[![Live Demo](https://youtu.be/S4ePGrZBpq0)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ASHIT2007/LABH---Smart-Investment-app-Powered-by-LABH-SATHI)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://github.com/ASHIT2007/LABH---Smart-Investment-app-Powered-by-LABH-SATHI)
@@ -29,89 +29,37 @@
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 
----
-
-## 🎬 Demo Video
-
-<div align="center">
-
-<!-- 🎥 ADD YOUR DEMO VIDEO HERE -->
-<!-- Option 1: YouTube embed (Recommended) -->
-<!-- Replace YOUR_VIDEO_ID with your actual YouTube video ID -->
-
-<!--
-[![LABH LITE Demo](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
--->
-
-<!-- Option 2: Direct video file hosted in the repo -->
-<!-- Uncomment and update the path below -->
-
-<!--
-https://github.com/user-attachments/assets/YOUR_VIDEO_ASSET_ID
--->
-
-<!-- Option 3: Screen recording GIF -->
-<!-- Uncomment and update the path below -->
-
-<!--
-![LABH LITE Demo](./assets/demo.gif)
--->
-
-> **🎥 Demo video coming soon!**
->
-> *A walkthrough showcasing the full trading experience — from login to AI-powered insights.*
-
-</div>
-
----
 
 ## 📸 Screenshots
 
 <div align="center">
 
-<!-- 🖼️ ADD YOUR SCREENSHOTS BELOW -->
-<!-- Replace the placeholder comments with actual screenshot links -->
-<!-- Use GitHub's drag-and-drop to upload images to your repo, then paste the generated URLs -->
+
 
 ### 🏠 Dashboard Overview
 
-<!-- ![Dashboard Overview](./assets/screenshots/dashboard.png) -->
-> 📷 *Screenshot: Main dashboard with real-time market data, portfolio overview, and trading panels.*
+<img width="1917" height="902" alt="image" src="https://github.com/user-attachments/assets/26966956-723c-404e-a300-7d2d8e352f61" />
 
----
 
 ### 📊 Live Trading Interface
 
-<!-- ![Trading Interface](./assets/screenshots/trading.png) -->
-> 📷 *Screenshot: Buy/Sell ticket, order book, and live price charts in action.*
-
----
+<img width="1280" height="611" alt="image" src="https://github.com/user-attachments/assets/bcb0ec57-7bb2-44e1-ab16-f09384714963" />
 
 ### 🌍 3D Global Market Globe
 
-<!-- ![3D Globe](./assets/screenshots/globe.png) -->
-> 📷 *Screenshot: Interactive 3D globe showing worldwide market activity.*
+<img width="1280" height="602" alt="image" src="https://github.com/user-attachments/assets/6cf2bb09-dbb3-493b-9d64-e44e8da71b6e" />
 
----
 
 ### 🤖 AI-Powered Insights (LABH SATHI)
 
-<!-- ![AI Insights](./assets/screenshots/ai-insights.png) -->
-> 📷 *Screenshot: LABH SATHI AI assistant providing real-time market analysis and trading suggestions.*
+<img width="1280" height="607" alt="image" src="https://github.com/user-attachments/assets/a1eeafb4-8879-4b10-a38b-b6b3f7c0012f" />
 
----
 
 ### 🔐 Login Page
 
-<!-- ![Login Page](./assets/screenshots/login.png) -->
-> 📷 *Screenshot: Secure glassmorphism login interface.*
+<img width="1917" height="902" alt="image" src="https://github.com/user-attachments/assets/c80b69aa-e7b5-4916-8efe-f37e90565cf9" />
 
----
 
-### 📱 Mobile Responsive View
-
-<!-- ![Mobile View](./assets/screenshots/mobile.png) -->
-> 📷 *Screenshot: Fully responsive design on mobile devices.*
 
 </div>
 
